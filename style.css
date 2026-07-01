@@ -595,3 +595,317 @@ body { font-family: 'Inter', system-ui, sans-serif; color: var(--text); backgrou
 .cat-satisf    { background: #fff3e0; color: #c75000; }
 .cat-moyen     { background: #fdecea; color: #c62828; }
 .op-source { font-size: 11px; color: var(--text2); }
+
+/* ══════════════ ÉNERGIE & RÉSEAU ══════════════ */
+.energie-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+.energie-section-title {
+  font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px;
+}
+.energie-intro {
+  color: var(--text2); font-size: 14px; margin-bottom: 20px; line-height: 1.6;
+}
+.energie-note {
+  font-size: 12px; color: var(--text2); margin-top: 16px;
+  padding-top: 12px; border-top: 1px solid var(--gray2);
+}
+/* Solar cards */
+.solar-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px;
+}
+.solar-card {
+  background: var(--gray); border-radius: 10px; padding: 20px;
+  text-align: center; border: 1px solid var(--gray2); transition: transform .18s;
+}
+.solar-card:hover { transform: translateY(-2px); }
+.solar-card-dept  { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+.solar-card-name  { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+.solar-card-stat  { margin-bottom: 8px; }
+.solar-card-val   { font-size: 22px; font-weight: 800; color: #e65100; }
+.solar-card-unit  { font-size: 11px; color: var(--text2); margin-left: 2px; }
+.solar-card-label { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.solar-card-tags  { display: flex; justify-content: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.solar-tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: rgba(230,81,0,.1); color: #e65100; font-weight: 600; }
+.solar-loading { text-align: center; color: var(--text2); padding: 36px; font-style: italic; grid-column: 1/-1; }
+/* Conso cards */
+.conso-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;
+}
+.conso-card { background: var(--blue-l); border-radius: 10px; padding: 18px; border: 1px solid rgba(21,101,192,.12); }
+.conso-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.conso-dept-badge {
+  width: 34px; height: 34px; border-radius: 7px; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.conso-card-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.conso-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(21,101,192,.08); font-size: 12px; }
+.conso-row:last-child { border-bottom: none; }
+.conso-row-lbl { color: var(--text2); }
+.conso-row-val { font-weight: 700; color: var(--blue); }
+/* Enedis cards */
+.enedis-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px;
+}
+.enedis-card { background: var(--green-l); border-radius: 10px; padding: 18px; border: 1px solid rgba(0,200,83,.18); }
+.enedis-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.enedis-stat { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; border-bottom: 1px solid rgba(0,200,83,.12); }
+.enedis-stat:last-of-type { border-bottom: none; }
+.enedis-stat-val { font-weight: 700; color: var(--green-d); }
+/* Progress bar */
+.sat-bar-wrap { height: 7px; background: var(--gray2); border-radius: 4px; margin: 8px 0 4px; overflow: hidden; }
+.sat-bar { height: 100%; border-radius: 4px; transition: width .6s; }
+/* Fiche energie */
+.fi-pvgis-btn {
+  display: inline-block; margin-top: 6px; padding: 5px 14px;
+  background: rgba(230,81,0,.09); color: #e65100;
+  border: 1px solid rgba(230,81,0,.28); border-radius: 20px;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s;
+}
+.fi-pvgis-btn:hover { background: rgba(230,81,0,.18); }
+.pvgis-result {
+  margin-top: 8px; padding: 10px 12px; background: rgba(230,81,0,.07);
+  border-radius: 8px; font-size: 12px; line-height: 1.7;
+}
+.pvgis-result strong { color: #e65100; }
+
+/* ═══════════════════════════════════════════════════════
+   ONGLET ANALYSES SPATIALES
+   ═══════════════════════════════════════════════════════ */
+.ana-hero {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 60%, #1a2b3d 100%);
+  color: var(--white);
+  padding: 64px 0 56px;
+  margin-top: 0;
+}
+.ana-hero-label {
+  display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--green);
+  background: rgba(0,200,83,.12); padding: 6px 14px; border-radius: 20px; margin-bottom: 18px;
+}
+.ana-hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+.ana-hero-sub { font-size: 16px; color: rgba(255,255,255,.8); max-width: 820px; }
+.ana-hero-sub strong { color: var(--white); }
+.ana-hero-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.ana-tag {
+  font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  padding: 7px 14px; border-radius: 8px;
+}
+
+/* En-tête de famille d'analyse */
+.ana-family-head { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; }
+.ana-family-num {
+  flex-shrink: 0; font-size: 20px; font-weight: 800; color: var(--white);
+  width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue), var(--teal)); border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.ana-family-head h2 { font-size: 24px; font-weight: 800; line-height: 1.2; }
+.ana-family-head p { color: var(--text2); font-size: 14px; margin-top: 4px; }
+
+/* Encadré résultat clé */
+.ana-finding {
+  background: var(--white); border-left: 4px solid var(--green);
+  border-radius: 10px; box-shadow: var(--shadow);
+  padding: 20px 24px; margin-bottom: 28px; font-size: 15px; line-height: 1.75; color: var(--text);
+}
+.ana-finding strong { color: var(--dark); }
+
+/* Grille de figures */
+.ana-figures {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+}
+.ana-fig {
+  display: flex; flex-direction: column; text-decoration: none; color: inherit;
+  background: var(--white); border: 1px solid var(--gray2); border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s;
+}
+.ana-fig:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.ana-fig img { width: 100%; height: auto; display: block; background: var(--gray); }
+.ana-fig-cap {
+  padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text2);
+  border-top: 1px solid var(--gray2);
+}
+
+/* Bloc deux colonnes (tableau + carte) */
+.ana-two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; align-items: start;
+}
+.ana-top-table-wrap {
+  background: var(--white); border: 1px solid var(--gray2); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px 22px;
+}
+.ana-top-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+.ana-top-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ana-top-table th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--text2); padding: 8px 10px; border-bottom: 2px solid var(--gray2);
+}
+.ana-top-table td { padding: 9px 10px; border-bottom: 1px solid var(--gray2); }
+.ana-top-table tr:last-child td { border-bottom: none; }
+.ana-top-table td:first-child { color: var(--text2); font-weight: 700; width: 32px; }
+.ana-top-table td:nth-child(2) { font-weight: 600; }
+.ana-pill {
+  display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+}
+.pill-th { background: rgba(173,20,87,.12); color: var(--pink); }
+.ana-top-note { margin-top: 14px; font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+.ana-fig-tall img { height: 100%; object-fit: cover; }
+
+/* Méthodologie */
+.ana-method {
+  background: var(--white); border: 1px solid var(--gray2); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 28px 32px;
+}
+.ana-method h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.ana-method p { color: var(--text2); font-size: 14.5px; line-height: 1.75; }
+.ana-method p + p { margin-top: 12px; }
+.ana-method-note { font-size: 13px; }
+.ana-method em { color: var(--blue); font-style: normal; font-weight: 600; }
+
+@media (max-width: 860px) {
+  .ana-two-col { grid-template-columns: 1fr; }
+  .ana-fig-tall img { height: auto; }
+}
+
+/* ── Sélecteur d'analyse (liste déroulante) ── */
+.ana-selector-bar { padding-top: 30px; padding-bottom: 10px; }
+.ana-selector-bar .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ana-select-label { font-size: 15px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.ana-select {
+  flex: 1; min-width: 260px; max-width: 660px;
+  font-family: inherit; font-size: 15px; font-weight: 600; color: var(--dark);
+  padding: 14px 46px 14px 18px; line-height: 1.3;
+  border: 2px solid var(--gray2); border-radius: 12px; background-color: var(--white);
+  cursor: pointer; box-shadow: var(--shadow); transition: border-color .18s, box-shadow .18s;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231565c0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+}
+.ana-select:hover { border-color: var(--blue); }
+.ana-select:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--blue-l); }
+
+/* Affichage commuté des sections d'analyse */
+.ana-section { display: none; }
+.ana-section.active-ana { display: block; animation: anaFade .28s ease; }
+@keyframes anaFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Explorateur cartographique interactif ── */
+.ana-map-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.ana-map-wrap {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); border: 1px solid var(--gray2);
+}
+#anaMap, #anaScenMap, #anaWMap { height: 580px; width: 100%; background: #e8eef2; }
+.ana-legend {
+  position: absolute; bottom: 16px; left: 16px; z-index: 600;
+  background: rgba(255,255,255,.97); border-radius: 10px; box-shadow: var(--shadow-lg);
+  padding: 12px 15px; font-size: 12px; max-width: 280px; max-height: 74%; overflow: auto;
+}
+.ana-legend-title { font-weight: 700; margin-bottom: 8px; font-size: 12.5px; color: var(--dark); }
+.ana-leg-row { display: flex; align-items: center; gap: 9px; margin: 4px 0; line-height: 1.3; color: var(--text); }
+.ana-leg-row i {
+  width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; display: inline-block;
+  border: 1px solid rgba(0,0,0,.1);
+}
+.ana-desc {
+  margin-top: 18px; background: var(--white); border-left: 4px solid var(--blue);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 16px 22px; font-size: 14.5px; line-height: 1.72;
+}
+.ana-desc strong { color: var(--dark); }
+@media (max-width: 700px) {
+  #anaMap, #anaScenMap, #anaWMap { height: 440px; }
+  .ana-legend { font-size: 11px; max-width: 200px; padding: 9px 11px; }
+}
+
+/* ── Pondération personnalisée ── */
+.ana-weights-grid { display: grid; grid-template-columns: 370px 1fr; gap: 24px; align-items: start; }
+.ana-weights-panel {
+  background: var(--white); border: 1px solid var(--gray2); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px 22px;
+}
+.ana-w-panel-title { font-weight: 700; font-size: 15px; color: var(--dark); margin-bottom: 16px; }
+.ana-w-row { margin-bottom: 15px; }
+.ana-w-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 600; margin-bottom: 7px; gap: 8px; }
+.ana-w-val { color: var(--blue); font-weight: 800; flex-shrink: 0; }
+.ana-w-slider {
+  width: 100%; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 5px;
+  background: var(--gray2); outline: none;
+}
+.ana-w-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--blue); border: 3px solid #fff; box-shadow: var(--shadow); cursor: pointer;
+}
+.ana-w-slider::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--blue);
+  border: 3px solid #fff; box-shadow: var(--shadow); cursor: pointer;
+}
+.ana-w-reset {
+  margin-top: 10px; width: 100%; padding: 11px; border: 1px solid var(--gray2);
+  background: var(--gray); border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--text); cursor: pointer; transition: background .15s;
+}
+.ana-w-reset:hover { background: var(--gray2); }
+.ana-w-top { margin-top: 18px; background: var(--white); border-radius: 10px; box-shadow: var(--shadow); padding: 16px 20px; }
+.ana-w-top h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--dark); }
+.ana-w-toplist { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; }
+.ana-w-toplist li { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; padding: 5px 0; border-bottom: 1px solid var(--gray2); gap: 10px; }
+.ana-w-toplist li b { color: var(--pink); }
+.ana-w-toplist li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 860px) {
+  .ana-weights-grid { grid-template-columns: 1fr; }
+  .ana-w-toplist { grid-template-columns: 1fr; }
+}
+
+/* ── Slider des scénarios ── */
+.ana-scen {
+  margin-top: 18px; background: var(--white); border: 1px solid var(--gray2);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 24px;
+}
+.ana-scen-head { font-weight: 700; font-size: 15px; color: var(--dark); }
+.ana-scen-sub { font-size: 12.5px; color: var(--text2); margin: 4px 0 14px; }
+.ana-scen-slider {
+  width: 100%; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 6px;
+  background: linear-gradient(90deg, #fee5d9, #fb6a4a 55%, #a50f15); outline: none; margin: 4px 0 12px;
+}
+.ana-scen-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--blue); border: 3px solid #fff; box-shadow: var(--shadow); cursor: pointer;
+}
+.ana-scen-slider::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
+  border: 3px solid #fff; box-shadow: var(--shadow); cursor: pointer;
+}
+.ana-scen-labels { display: flex; gap: 6px; }
+.ana-scen-labels span {
+  flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: var(--text2);
+  cursor: pointer; padding: 6px 4px; border-radius: 8px; transition: background .15s, color .15s;
+}
+.ana-scen-labels span:hover { background: var(--gray); }
+.ana-scen-labels span.active { color: var(--white); background: var(--blue); }
+
+/* ── Affichage des poids d'un scénario ── */
+.ana-scen-weights { margin-top: 16px; }
+.ana-scen-weights:empty { display: none; }
+.ana-scen-w-card {
+  background: var(--white); border: 1px solid var(--gray2); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 18px 22px;
+}
+.ana-scen-w-title { font-weight: 700; font-size: 14px; color: var(--dark); margin-bottom: 14px; }
+.ana-scen-w-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+.ana-scen-w-item { display: grid; grid-template-columns: 160px 1fr 46px; align-items: center; gap: 10px; font-size: 13px; }
+.ana-scen-w-item > span { color: var(--text); font-weight: 600; }
+.ana-scen-w-bar { height: 9px; border-radius: 5px; background: var(--gray2); overflow: hidden; }
+.ana-scen-w-bar i { display: block; height: 100%; background: linear-gradient(90deg, #fb6a4a, #a50f15); border-radius: 5px; }
+.ana-scen-w-item > b { color: var(--pink); text-align: right; font-weight: 800; }
+.ana-scen-w-item.zero > span, .ana-scen-w-item.zero > b { color: var(--text2); opacity: .55; }
+.ana-scen-w-note { color: var(--text2); font-size: 13.5px; line-height: 1.6; }
+@media (max-width: 700px) { .ana-scen-w-list { grid-template-columns: 1fr; } .ana-scen-w-item { grid-template-columns: 130px 1fr 42px; } }

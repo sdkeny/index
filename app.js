@@ -139,6 +139,8 @@ window.showTab = function(name) {
       }
     }, 50);
   }
+  if (name === 'energie') { setTimeout(initEnergie, 80); }
+  if (name === 'analyses') { setTimeout(initAnalysesMap, 80); }
   window.scrollTo(0, 0);
 };
 
@@ -386,6 +388,22 @@ window.openFiche = function(r) {
   html += section('Qualité & équité', '&#11088;', [
     row('Satisfaction',    satStr),
     row('Score équité',    seStr),
+  ]);
+
+  /* ── Section 7 : Énergie & Potentiel solaire ── */
+  var irveMwh = +r.puiss_tot > 0
+    ? ((+r.puiss_tot * 8760 * 0.15) / 1000).toFixed(1) + ' MWh/an'
+    : '—';
+  var centroid = getCommuneCentroid(r.code);
+  var pvgisBtn = centroid
+    ? '<button class="fi-pvgis-btn" onclick="fetchPVGISForCommune(\''
+        + r.code + '\',' + centroid[0].toFixed(5) + ',' + centroid[1].toFixed(5)
+        + ')">☀️ Calculer le potentiel PVGIS</button>'
+      + '<div id="pvgis-' + r.code + '" class="pvgis-result" style="display:none"></div>'
+    : '—';
+  html += section('Énergie &amp; Réseau', '&#9889;', [
+    row('Conso. IRVE estimée', irveMwh, '&#128200;'),
+    row('Potentiel solaire',   pvgisBtn, '&#9728;'),
   ]);
 
   html += '</div>'; /* fi-grid */
@@ -1133,3 +1151,615 @@ window.toggleFaq = function(btn) {
   });
   if(!was){ans.classList.add('open');btn.classList.add('open');}
 };
+
+/* ════════════════════════════════════════════════
+   ONGLET ÉNERGIE & RÉSEAU
+   ════════════════════════════════════════════════ */
+
+/* Centroids (lat, lon) des chefs-lieux de département IDF */
+var DEPT_COORDS = {
+  '75': [48.8566,  2.3522],
+  '77': [48.5395,  2.9139],
+  '78': [48.8014,  1.9875],
+  '91': [48.6227,  2.2356],
+  '92': [48.8921,  2.2147],
+  '93': [48.9180,  2.4897],
+  '94': [48.7768,  2.4311],
+  '95': [49.0498,  2.0552]
+};
+
+var _energieReady = false;
+var _pvgisCache   = {};
+var _centroidCache = null;
+
+/* Calcule le centroïde d'un polygone GeoJSON */
+function _polyCentroid(coords) {
+  var xs = 0, ys = 0, n = coords.length;
+  for (var i = 0; i < n; i++) { xs += coords[i][0]; ys += coords[i][1]; }
+  return [ys / n, xs / n]; /* [lat, lon] */
+}
+
+/* Retourne [lat, lon] pour un code INSEE depuis COMMUNES_GEO */
+function getCommuneCentroid(code) {
+  if (!_centroidCache) {
+    _centroidCache = {};
+    if (typeof COMMUNES_GEO !== 'undefined') {
+      COMMUNES_GEO.features.forEach(function(feat) {
+        var c = feat.properties.code;
+        var geo = feat.geometry;
+        var ring = geo.type === 'Polygon'      ? geo.coordinates[0]
+                 : geo.type === 'MultiPolygon' ? geo.coordinates[0][0] : null;
+        if (ring) _centroidCache[c] = _polyCentroid(ring);
+      });
+    }
+  }
+  return _centroidCache[code] || null;
+}
+
+/* ── Initialisation (appelée une seule fois) ── */
+function initEnergie() {
+  if (_energieReady) return;
+  _energieReady = true;
+  _renderConsoIRVE();
+  _fetchAllPVGIS();
+  _fetchEnedisData();
+}
+
+/* ── Section 2 : Consommation estimée (calcul local) ── */
+function _renderConsoIRVE() {
+  var grid = document.getElementById('consoGrid');
+  if (!grid) return;
+
+  var UTIL = 0.15;          /* taux d'utilisation moyen PDC publics (AFIREV 2024) */
+  var FOYER = 4700;         /* kWh/an — foyer moyen INSEE 2023 */
+
+  /* Agrégation puiss_tot par département depuis IRVE_DATA */
+  var byDept = {};
+  IRVE_DATA.forEach(function(r) {
+    if (!byDept[r.dept]) byDept[r.dept] = 0;
+    byDept[r.dept] += (+r.puiss_tot || 0);
+  });
+
+  grid.innerHTML = DEPTS.map(function(d) {
+    var kw       = byDept[d.code] || 0;
+    var mwh      = Math.round(kw * 8760 * UTIL / 1000);
+    var foyers   = Math.round(mwh * 1000 / FOYER);
+    return '<div class="conso-card">'
+      +'<div class="conso-card-header">'
+        +'<div class="conso-dept-badge" style="background:'+DEPT_COLOR[d.code]+'">'+d.code+'</div>'
+        +'<div class="conso-card-name">'+d.nom+'</div>'
+      +'</div>'
+      +'<div class="conso-row"><span class="conso-row-lbl">Puissance IRVE totale</span><span class="conso-row-val">'+Math.round(kw).toLocaleString('fr-FR')+' kW</span></div>'
+      +'<div class="conso-row"><span class="conso-row-lbl">Consommation estimée</span><span class="conso-row-val">'+mwh.toLocaleString('fr-FR')+' MWh/an</span></div>'
+      +'<div class="conso-row"><span class="conso-row-lbl">Équivalent foyers</span><span class="conso-row-val">'+foyers.toLocaleString('fr-FR')+' foyers</span></div>'
+    +'</div>';
+  }).join('');
+}
+
+/* ── Section 1 : PVGIS (appels API) ── */
+function _fetchAllPVGIS() {
+  var grid = document.getElementById('solarGrid');
+  if (!grid) return;
+
+  var promises = DEPTS.map(function(d) {
+    var c = DEPT_COORDS[d.code];
+    if (!c) return Promise.resolve({dept: d, data: null});
+    var url = 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc'
+      + '?lat=' + c[0] + '&lon=' + c[1]
+      + '&peakpower=1&loss=14&outputformat=json';
+    return fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(json) { return {dept: d, data: json}; })
+      .catch(function()   { return {dept: d, data: null}; });
+  });
+
+  Promise.all(promises).then(function(results) {
+    _renderSolarCards(results);
+  }).catch(function() {
+    grid.innerHTML = '<div class="solar-loading">⚠️ API PVGIS temporairement indisponible.</div>';
+  });
+}
+
+function _renderSolarCards(results) {
+  var grid = document.getElementById('solarGrid');
+  if (!grid) return;
+
+  var maxEy = 0;
+  results.forEach(function(r) {
+    var v = r.data && r.data.outputs ? (r.data.outputs.totals.fixed['E_y'] || 0) : 0;
+    if (v > maxEy) maxEy = v;
+  });
+
+  grid.innerHTML = results.map(function(item) {
+    var d    = item.dept;
+    var data = item.data;
+    if (!data || !data.outputs) {
+      return '<div class="solar-card">'
+        +'<div class="solar-card-dept">'+d.code+'</div>'
+        +'<div class="solar-card-name">'+d.nom+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);padding:12px 0;">Données indisponibles</div>'
+        +'</div>';
+    }
+    var fixed  = data.outputs.totals.fixed;
+    var ey     = +(fixed['E_y']    || 0);   /* kWh/kWc/an */
+    var hiy    = +(fixed['H(i)_y'] || 0);   /* kWh/m²/an  */
+    var slope  = data.inputs && data.inputs.mounting_system
+               ? (data.inputs.mounting_system.fixed.slope.value || '—') : '—';
+    var pct    = maxEy > 0 ? Math.round(ey / maxEy * 100) : 0;
+    /* Pour 10 kWc (installation typique borne 22 kW) */
+    var prod10 = (ey * 10 / 1000).toFixed(1);
+
+    return '<div class="solar-card">'
+      +'<div class="solar-card-dept">'+d.code+'</div>'
+      +'<div class="solar-card-name">'+d.nom+'</div>'
+      +'<div class="solar-card-stat">'
+        +'<span class="solar-card-val">'+Math.round(ey)+'</span>'
+        +'<span class="solar-card-unit">kWh/kWc/an</span>'
+        +'<div class="solar-card-label">Production annuelle optimale</div>'
+      +'</div>'
+      +'<div class="solar-card-stat">'
+        +'<span class="solar-card-val" style="font-size:17px">'+Math.round(hiy)+'</span>'
+        +'<span class="solar-card-unit">kWh/m²/an</span>'
+        +'<div class="solar-card-label">Irradiance sur plan incliné</div>'
+      +'</div>'
+      +'<div class="sat-bar-wrap"><div class="sat-bar" style="width:'+pct+'%;background:#e65100"></div></div>'
+      +'<div class="solar-card-tags">'
+        +'<span class="solar-tag">Inclin. '+slope+'°</span>'
+        +'<span class="solar-tag">'+prod10+' MWh / 10 kWc</span>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+/* ── Section 3 : Enedis Open Data (production PV) ── */
+function _fetchEnedisData() {
+  var grid = document.getElementById('enedisGrid');
+  if (!grid) return;
+
+  var codes = DEPTS.map(function(d){ return d.code; });
+  var whereClause = codes.map(function(c){
+    return 'code_insee_departement%3D%22' + c + '%22';
+  }).join('%20OR%20');
+
+  var url = 'https://data.enedis.fr/api/explore/v2.1/catalog/datasets/'
+    + 'production-annuelle-photovoltaique-par-commune-et-domaine-de-tension/records'
+    + '?select=code_insee_departement%2Csum(energie_produite_mwh)%20as%20pv_total'
+    + '&where=annee%3D%222023%22%20AND%20(' + whereClause + ')'
+    + '&group_by=code_insee_departement&limit=10';
+
+  var ctrl = new AbortController();
+  var tid  = setTimeout(function(){ ctrl.abort(); }, 12000);
+
+  fetch(url, {signal: ctrl.signal})
+    .then(function(r) { clearTimeout(tid); return r.json(); })
+    .then(function(json) {
+      if (json.results && json.results.length) {
+        _renderEnedisCards(json.results);
+      } else {
+        _renderEnedisEstimated('Aucune donnée Enedis pour 2023.');
+      }
+    })
+    .catch(function() {
+      _renderEnedisEstimated('API Enedis temporairement indisponible.');
+    });
+}
+
+function _renderEnedisCards(results) {
+  var grid = document.getElementById('enedisGrid');
+  if (!grid) return;
+
+  /* Lookup production PV par département */
+  var pvLookup = {};
+  results.forEach(function(r) { pvLookup[r.code_insee_departement] = +(r.pv_total || 0); });
+
+  /* Consommation IRVE par département */
+  var consoByDept = {};
+  IRVE_DATA.forEach(function(r) {
+    if (!consoByDept[r.dept]) consoByDept[r.dept] = 0;
+    consoByDept[r.dept] += (+r.puiss_tot || 0);
+  });
+
+  grid.innerHTML = DEPTS.map(function(d) {
+    var pvMwh     = pvLookup[d.code] || 0;
+    var irveKw    = consoByDept[d.code] || 0;
+    var irveMwh   = Math.round(irveKw * 8760 * 0.15 / 1000);
+    var ratio     = irveMwh > 0 ? Math.min(Math.round(pvMwh / irveMwh * 100), 999) : 0;
+    var barWidth  = Math.min(ratio, 100);
+    var col       = ratio >= 100 ? '#00c853' : ratio >= 50 ? '#1e88e5' : ratio >= 25 ? '#fb8c00' : '#e53935';
+
+    return '<div class="enedis-card">'
+      +'<div class="enedis-card-title">'
+        +'<span style="background:'+DEPT_COLOR[d.code]+';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800">'+d.code+'</span>'
+        +d.nom
+      +'</div>'
+      +'<div class="enedis-stat"><span>Production PV 2023</span><span class="enedis-stat-val">'+Math.round(pvMwh).toLocaleString('fr-FR')+' MWh</span></div>'
+      +'<div class="enedis-stat"><span>Conso. IRVE estimée</span><span class="enedis-stat-val">'+irveMwh.toLocaleString('fr-FR')+' MWh/an</span></div>'
+      +'<div class="enedis-stat"><span>Couverture solaire IRVE</span><span class="enedis-stat-val" style="color:'+col+'">'+ratio+' %</span></div>'
+      +'<div class="sat-bar-wrap"><div class="sat-bar" style="width:'+barWidth+'%;background:'+col+'"></div></div>'
+    +'</div>';
+  }).join('');
+
+  var note = document.getElementById('enedisNote');
+  if (note) note.textContent = 'Source : Enedis Open Data · data.enedis.fr · Production PV 2023 par commune · Ratio = Prod. PV / Conso. IRVE estimée';
+}
+
+function _renderEnedisEstimated(msg) {
+  var grid = document.getElementById('enedisGrid');
+  if (!grid) return;
+
+  var consoByDept = {};
+  IRVE_DATA.forEach(function(r) {
+    if (!consoByDept[r.dept]) consoByDept[r.dept] = 0;
+    consoByDept[r.dept] += (+r.puiss_tot || 0);
+  });
+
+  grid.innerHTML = '<div style="grid-column:1/-1;padding:14px 18px;background:rgba(230,81,0,.06);'
+    +'border-radius:8px;font-size:13px;color:var(--text2);margin-bottom:4px;">'
+    +'⚠️ '+msg+' '
+    +'<a href="https://data.enedis.fr/explore/?q=photovoltaique" target="_blank" rel="noopener" '
+    +'style="color:var(--blue)">Consulter data.enedis.fr →</a>'
+    +'</div>'
+    + DEPTS.map(function(d) {
+        var irveMwh = Math.round((consoByDept[d.code]||0) * 8760 * 0.15 / 1000);
+        return '<div class="enedis-card">'
+          +'<div class="enedis-card-title">'
+            +'<span style="background:'+DEPT_COLOR[d.code]+';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800">'+d.code+'</span>'
+            +d.nom
+          +'</div>'
+          +'<div class="enedis-stat"><span>Conso. IRVE estimée</span><span class="enedis-stat-val">'+irveMwh.toLocaleString('fr-FR')+' MWh/an</span></div>'
+          +'<div class="enedis-stat"><span>PDC installés</span><span class="enedis-stat-val">'+d.pdc.toLocaleString('fr-FR')+'</span></div>'
+          +'<div class="enedis-stat"><span>Données PV</span>'
+            +'<a href="https://data.enedis.fr" target="_blank" rel="noopener" style="color:var(--blue);font-size:11px">data.enedis.fr →</a>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+}
+
+/* ── Potentiel solaire d'une commune (depuis la fiche) ── */
+window.fetchPVGISForCommune = function(code, lat, lon) {
+  var box = document.getElementById('pvgis-' + code);
+  if (!box) return;
+  box.style.display = 'block';
+  box.innerHTML = '⏳ Interrogation PVGIS…';
+
+  fetch('https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat=' + lat + '&lon=' + lon + '&peakpower=1&loss=14&outputformat=json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var fixed = data.outputs.totals.fixed;
+      var ey    = Math.round(fixed['E_y']);
+      var hiy   = Math.round(fixed['H(i)_y']);
+      var slope = data.inputs && data.inputs.mounting_system
+                ? data.inputs.mounting_system.fixed.slope.value : '—';
+      box.innerHTML =
+        '☀️ Données <strong>PVGIS (JRC)</strong><br>'
+        + 'Production optimale : <strong>' + ey + ' kWh/kWc/an</strong><br>'
+        + 'Irradiance inclinée : <strong>' + hiy + ' kWh/m²/an</strong><br>'
+        + 'Inclinaison optimale : <strong>' + slope + '°</strong> plein sud';
+    })
+    .catch(function() {
+      box.innerHTML = '⚠️ API PVGIS indisponible pour cette commune.';
+    });
+};;
+
+/* ════════════════════════════════════════════════
+   ANALYSES SPATIALES — cartes interactives (Leaflet)
+   ════════════════════════════════════════════════ */
+var ANA_EXCLUDE = { s1: 1, s2: 1, s3: 1, s4: 1 };   // scénarios : gérés dans leur section dédiée
+var ANA_SCENARIOS = [
+  { id: 's1', label: 'Équité' },
+  { id: 's2', label: 'Efficacité' },
+  { id: 's3', label: 'Résilience' },
+  { id: 's4', label: 'Couverture max' }
+];
+var anaView = null, anaScenView = null;
+
+function anaFindInd(id) {
+  for (var i = 0; i < ANALYSES_INDICATORS.length; i++) {
+    if (ANALYSES_INDICATORS[i].id === id) return ANALYSES_INDICATORS[i];
+  }
+  return null;
+}
+function anaColor(ind, val) {
+  if (val === undefined || val === null || val === '') return '#f0f0f0';
+  if (ind.type === 'cat') {
+    for (var i = 0; i < ind.cats.length; i++) { if (ind.cats[i][0] == val) return ind.cats[i][2]; }
+    return '#f0f0f0';
+  }
+  var b = ind.breaks, c = ind.palette;
+  for (var j = 0; j < b.length; j++) { if (val <= b[j]) return c[j]; }
+  return c[c.length - 1];
+}
+function anaFmtBreak(v, ind) { return Number(v).toFixed(ind.dec) + (ind.unit || ''); }
+function anaFmtVal(ind, val) {
+  if (val === undefined || val === null || val === '') return '—';
+  if (ind.type === 'cat') {
+    for (var i = 0; i < ind.cats.length; i++) { if (ind.cats[i][0] == val) return ind.cats[i][1]; }
+    return String(val);
+  }
+  return Number(val).toFixed(ind.dec) + (ind.unit || '');
+}
+function anaStyleFn(ind) {
+  return function (feat) {
+    var d = ANALYSES_DATA[feat.properties.code];
+    var val = d ? d[ind.key] : undefined;
+    return { fillColor: anaColor(ind, val), weight: 0.4, color: '#ffffff', fillOpacity: 0.85 };
+  };
+}
+function anaRenderLegend(ind, elId) {
+  var el = document.getElementById(elId); if (!el) return;
+  var h = '<div class="ana-legend-title">' + ind.label + '</div>';
+  if (ind.type === 'cat') {
+    ind.cats.forEach(function (c) {
+      h += '<div class="ana-leg-row"><i style="background:' + c[2] + '"></i>' + c[1] + '</div>';
+    });
+  } else {
+    var b = ind.breaks, c = ind.palette, labs = [];
+    labs.push('&lt; ' + anaFmtBreak(b[0], ind));
+    for (var i = 0; i < b.length - 1; i++) labs.push(anaFmtBreak(b[i], ind) + ' – ' + anaFmtBreak(b[i + 1], ind));
+    labs.push('&gt; ' + anaFmtBreak(b[b.length - 1], ind));
+    for (var k = 0; k < c.length; k++) {
+      h += '<div class="ana-leg-row"><i style="background:' + c[k] + '"></i>' + labs[k] + '</div>';
+    }
+  }
+  el.innerHTML = h;
+}
+function anaBindTip(layer, ind) {
+  var p = layer.feature.properties, d = ANALYSES_DATA[p.code];
+  var name = (d && d.name) || p.nom || p.code;
+  layer.bindTooltip(
+    '<b>' + name + '</b> · dép. ' + p.dept + '<br>' + ind.label + ' : <b>' + anaFmtVal(ind, d ? d[ind.key] : undefined) + '</b>',
+    { sticky: true }
+  );
+}
+
+/* crée une vue carte (fond + couche communes) sur un conteneur donné */
+function anaCreateView(mapId, basemap) {
+  var el = document.getElementById(mapId);
+  if (!el || typeof L === 'undefined' || typeof COMMUNES_GEO === 'undefined') return null;
+  var map = L.map(mapId, { zoomControl: true, scrollWheelZoom: false, minZoom: 8, maxZoom: 14 })
+    .setView([48.72, 2.5], 9);
+  if (basemap === 'google') {
+    L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '© Google Maps' }).addTo(map);
+  } else {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      { maxZoom: 18, attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+  }
+  var view = { map: map, layer: null, cur: null };
+  view.layer = L.geoJSON(COMMUNES_GEO, {
+    style: anaStyleFn(ANALYSES_INDICATORS[0]),
+    onEachFeature: function (f, l) {
+      l.on('mouseover', function () { l.setStyle({ weight: 1.8, color: '#111827' }); l.bringToFront(); });
+      l.on('mouseout', function () { view.layer.resetStyle(l); });
+    }
+  }).addTo(map);
+  return view;
+}
+
+/* applique un indicateur à une vue + met à jour sa légende et sa description */
+function anaApply(view, ind, legendId, descId) {
+  if (!view || !ind) return;
+  view.cur = ind;
+  view.layer.options.style = anaStyleFn(ind);
+  view.layer.setStyle(anaStyleFn(ind));
+  view.layer.eachLayer(function (l) { anaBindTip(l, ind); });
+  anaRenderLegend(ind, legendId);
+  var d = document.getElementById(descId);
+  if (d) d.innerHTML = '<strong>' + ind.label + '.</strong> ' + (ind.desc || '');
+}
+
+function anaSetMainIndicator(id) {
+  var ind = anaFindInd(id); if (!ind) return;
+  anaApply(anaView, ind, 'anaLegend', 'anaDesc');
+  var sel = document.getElementById('anaIndicator');
+  if (sel && sel.value !== id) sel.value = id;
+}
+/* poids des 7 critères par scénario (source : phase6_4scenarios.py) */
+var ANA_SCEN_CRIT = [
+  'Densité de population', 'Taux de véhicules électriques', 'Déficit de bornes',
+  'Accessibilité (E2SFCA)', 'Équité (faible revenu)', 'Attracteurs (gares & commerces)',
+  'Résilience (anti-monopole)'
+];
+var ANA_SCEN_WEIGHTS = {
+  s1: [10, 10, 20, 20, 30, 10, 0],
+  s2: [30, 25, 10, 10, 0, 25, 0],
+  s3: [10, 15, 20, 20, 10, 0, 25],
+  s4: null
+};
+function anaRenderScenWeights(id) {
+  var el = document.getElementById('anaScenWeights'); if (!el) return;
+  var W = ANA_SCEN_WEIGHTS[id];
+  if (!W) {
+    el.innerHTML = '<div class="ana-scen-w-card"><div class="ana-scen-w-title">Poids des critères de ce scénario</div>' +
+      '<div class="ana-scen-w-note">Le scénario « Couverture max » repose sur une optimisation de couverture ' +
+      '(MCLP) : il maximise la population desservie à 10 min avec un nombre limité de sites, sans pondération ' +
+      'de critères.</div></div>';
+    return;
+  }
+  var maxw = Math.max.apply(null, W) || 1;
+  var h = '<div class="ana-scen-w-card"><div class="ana-scen-w-title">Poids des critères de ce scénario</div>' +
+    '<div class="ana-scen-w-list">';
+  for (var i = 0; i < ANA_SCEN_CRIT.length; i++) {
+    var w = W[i], zero = (w === 0) ? ' zero' : '';
+    h += '<div class="ana-scen-w-item' + zero + '"><span>' + ANA_SCEN_CRIT[i] + '</span>' +
+      '<div class="ana-scen-w-bar"><i style="width:' + (w / maxw * 100) + '%"></i></div>' +
+      '<b>' + w + ' %</b></div>';
+  }
+  h += '</div></div>';
+  el.innerHTML = h;
+}
+/* charge les poids du scénario dans les curseurs « Composez votre priorité » */
+function anaLoadScenarioWeights(id) {
+  var W = ANA_SCEN_WEIGHTS[id];
+  if (!W) return;                    // S4 (MCLP) : pas de pondération → on ne touche pas aux curseurs
+  for (var i = 0; i < ANA_CRITERIA.length && i < W.length; i++) {
+    var el = document.getElementById('w_' + ANA_CRITERIA[i].key);
+    if (el) el.value = W[i];
+  }
+  if (typeof anaWRefresh === 'function') anaWRefresh();
+}
+function anaSetScenario(idx) {
+  idx = Math.max(0, Math.min(ANA_SCENARIOS.length - 1, +idx));
+  var ind = anaFindInd(ANA_SCENARIOS[idx].id); if (!ind) return;
+  anaApply(anaScenView, ind, 'anaScenLegend', 'anaScenDesc');
+  var sl = document.getElementById('anaScenSlider'); if (sl) sl.value = idx;
+  document.querySelectorAll('#anaScenLabels span').forEach(function (sp) {
+    sp.classList.toggle('active', +sp.getAttribute('data-i') === idx);
+  });
+  anaRenderScenWeights(ANA_SCENARIOS[idx].id);
+  anaLoadScenarioWeights(ANA_SCENARIOS[idx].id);
+}
+
+/* ---- Pondération personnalisée (score WLC recalculé en direct) ---- */
+var ANA_CRITERIA = [
+  { key: 'c_den',  w: 25 },
+  { key: 'c_ve',   w: 20 },
+  { key: 'c_def',  w: 20 },
+  { key: 'c_acc',  w: 15 },
+  { key: 'c_rev',  w: 10 },
+  { key: 'c_att',  w: 10 },
+  { key: 'c_mono', w: 0 }
+];
+var ANA_WPALETTE = ['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15'];
+var anaWView = null, anaWScores = {}, anaWBreaks = [];
+
+function anaWColor(s) {
+  if (s === undefined) return '#f0f0f0';
+  for (var i = 0; i < anaWBreaks.length; i++) { if (s <= anaWBreaks[i]) return ANA_WPALETTE[i]; }
+  return ANA_WPALETTE[ANA_WPALETTE.length - 1];
+}
+function anaWStyleFn(feat) {
+  var s = anaWScores[feat.properties.code];
+  return { fillColor: anaWColor(s), weight: 0.4, color: '#ffffff', fillOpacity: 0.85 };
+}
+function anaWCompute() {
+  var ws = [], tot = 0;
+  ANA_CRITERIA.forEach(function (c) {
+    var el = document.getElementById('w_' + c.key);
+    var v = el ? +el.value : c.w; ws.push(v); tot += v;
+  });
+  if (tot <= 0) tot = 1;
+  anaWScores = {}; var arr = [];
+  for (var ins in ANALYSES_DATA) {
+    var d = ANALYSES_DATA[ins], s = 0, ok = false;
+    for (var i = 0; i < ANA_CRITERIA.length; i++) {
+      var cv = d[ANA_CRITERIA[i].key];
+      if (cv !== undefined && cv !== null) { s += ws[i] * cv; ok = true; }
+    }
+    if (ok) { s = s / tot; anaWScores[ins] = s; arr.push(s); }
+  }
+  arr.sort(function (a, b) { return a - b; });
+  var q = function (p) { return arr.length ? arr[Math.floor(p * (arr.length - 1))] : 0; };
+  anaWBreaks = [q(0.2), q(0.4), q(0.6), q(0.8)];
+  // labels de poids normalisés
+  ANA_CRITERIA.forEach(function (c) {
+    var el = document.getElementById('w_' + c.key), lab = document.getElementById('wv_' + c.key);
+    if (el && lab) lab.textContent = Math.round((+el.value) / tot * 100) + ' %';
+  });
+}
+function anaWRenderLegend() {
+  var el = document.getElementById('anaWLegend'); if (!el) return;
+  var b = anaWBreaks, c = ANA_WPALETTE, labs = [];
+  labs.push('&lt; ' + b[0].toFixed(2));
+  for (var i = 0; i < b.length - 1; i++) labs.push(b[i].toFixed(2) + ' – ' + b[i + 1].toFixed(2));
+  labs.push('&gt; ' + b[b.length - 1].toFixed(2));
+  var h = '<div class="ana-legend-title">Priorité personnalisée</div>';
+  for (var k = 0; k < c.length; k++) h += '<div class="ana-leg-row"><i style="background:' + c[k] + '"></i>' + labs[k] + '</div>';
+  el.innerHTML = h;
+}
+function anaWBindTip(l) {
+  var p = l.feature.properties, d = ANALYSES_DATA[p.code];
+  var name = (d && d.name) || p.nom || p.code, s = anaWScores[p.code];
+  l.bindTooltip('<b>' + name + '</b> · dép. ' + p.dept + '<br>Priorité personnalisée : <b>' +
+    (s !== undefined ? s.toFixed(2) : '—') + '</b>', { sticky: true });
+}
+function anaWRenderTop() {
+  var el = document.getElementById('anaWTop'); if (!el) return;
+  var arr = []; for (var ins in anaWScores) arr.push([ins, anaWScores[ins]]);
+  arr.sort(function (a, b) { return b[1] - a[1]; });
+  var h = '<h4>Top 8 communes prioritaires (selon vos poids)</h4><ol class="ana-w-toplist">';
+  for (var i = 0; i < 8 && i < arr.length; i++) {
+    var d = ANALYSES_DATA[arr[i][0]];
+    h += '<li><span>' + (i + 1) + '. ' + ((d && d.name) || arr[i][0]) + '</span><b>' + arr[i][1].toFixed(2) + '</b></li>';
+  }
+  h += '</ol>'; el.innerHTML = h;
+}
+function anaWRefresh() {
+  anaWCompute();
+  if (anaWView) {
+    anaWView.layer.options.style = anaWStyleFn;
+    anaWView.layer.setStyle(anaWStyleFn);
+    anaWView.layer.eachLayer(function (l) { anaWBindTip(l); });
+  }
+  anaWRenderLegend();
+  anaWRenderTop();
+}
+function anaWReset() {
+  ANA_CRITERIA.forEach(function (c) { var el = document.getElementById('w_' + c.key); if (el) el.value = c.w; });
+  anaWRefresh();
+}
+window.anaWRefresh = anaWRefresh;
+
+function initAnalysesMap() {
+  if (anaView) {
+    setTimeout(function () {
+      if (anaView) anaView.map.invalidateSize();
+      if (anaScenView) anaScenView.map.invalidateSize();
+      if (anaWView) anaWView.map.invalidateSize();
+    }, 60);
+    return;
+  }
+  if (typeof L === 'undefined' || typeof COMMUNES_GEO === 'undefined' ||
+      typeof ANALYSES_DATA === 'undefined' || typeof ANALYSES_INDICATORS === 'undefined') return;
+
+  /* --- explorateur principal (tous les indicateurs sauf les scénarios) --- */
+  anaView = anaCreateView('anaMap');
+  var sel = document.getElementById('anaIndicator');
+  if (anaView && sel) {
+    var groups = {}, order = [];
+    ANALYSES_INDICATORS.forEach(function (ind) {
+      if (ANA_EXCLUDE[ind.id]) return;
+      if (!groups[ind.group]) { groups[ind.group] = []; order.push(ind.group); }
+      groups[ind.group].push(ind);
+    });
+    var html = '';
+    order.forEach(function (g) {
+      html += '<optgroup label="' + g + '">';
+      groups[g].forEach(function (ind) { html += '<option value="' + ind.id + '">' + ind.label + '</option>'; });
+      html += '</optgroup>';
+    });
+    sel.innerHTML = html;
+    sel.onchange = function () { anaSetMainIndicator(this.value); };
+    anaSetMainIndicator(ANALYSES_INDICATORS[0].id);
+  }
+
+  /* --- section scénarios (carte + slider dédiés) --- */
+  anaScenView = anaCreateView('anaScenMap');
+  if (anaScenView) {
+    var slider = document.getElementById('anaScenSlider');
+    if (slider) slider.oninput = function () { anaSetScenario(this.value); };
+    document.querySelectorAll('#anaScenLabels span').forEach(function (sp) {
+      sp.onclick = function () { anaSetScenario(this.getAttribute('data-i')); };
+    });
+    anaSetScenario(0);
+  }
+
+  /* --- pondération personnalisée (carte + curseurs de poids) --- */
+  anaWView = anaCreateView('anaWMap');
+  if (anaWView) {
+    ANA_CRITERIA.forEach(function (c) {
+      var el = document.getElementById('w_' + c.key);
+      if (el) el.oninput = anaWRefresh;
+    });
+    var rb = document.getElementById('anaWReset');
+    if (rb) rb.onclick = anaWReset;
+    anaWRefresh();
+  }
+
+  setTimeout(function () {
+    if (anaView) anaView.map.invalidateSize();
+    if (anaScenView) anaScenView.map.invalidateSize();
+    if (anaWView) anaWView.map.invalidateSize();
+  }, 90);
+}
+window.initAnalysesMap = initAnalysesMap;

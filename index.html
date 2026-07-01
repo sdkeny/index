@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bornes de Recharge Électrique — Île-de-France | IRVE IDF</title>
-  <meta name="description" content="Explorez les 28 839 points de charge en Île-de-France. Carte interactive, statistiques et recherche par commune." />
+  <meta name="description" content="Explorez les 28 219 points de charge en Île-de-France. Carte interactive, statistiques et recherche par commune." />
   <link rel="stylesheet" href="lib/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,10 +25,12 @@
       <button class="tab-btn"        data-tab="departements" onclick="showTab('departements')">Départements</button>
       <button class="tab-btn"        data-tab="recherche"  onclick="showTab('recherche')">Recherche</button>
       <button class="tab-btn"        data-tab="types"      onclick="showTab('types')">Types de prises</button>
+      <button class="tab-btn"        data-tab="energie"    onclick="showTab('energie')">Énergie &amp; Réseau</button>
+      <button class="tab-btn"        data-tab="analyses"   onclick="showTab('analyses')">Analyses spatiales</button>
       <button class="tab-btn"        data-tab="faq"        onclick="showTab('faq')">FAQ</button>
     </nav>
     <div class="header-badge">
-      <span class="badge-dot"></span>Mis à jour le 23/04/2026
+      <span class="badge-dot"></span>Mis à jour le 09/06/2026
     </div>
   </div>
 </header>
@@ -39,6 +41,8 @@
   <button class="tab-btn"        data-tab="carte"        onclick="showTab('carte')">Carte</button>
   <button class="tab-btn"        data-tab="departements" onclick="showTab('departements')">Dép.</button>
   <button class="tab-btn"        data-tab="recherche"    onclick="showTab('recherche')">Recherche</button>
+  <button class="tab-btn"        data-tab="energie"      onclick="showTab('energie')">Énergie</button>
+  <button class="tab-btn"        data-tab="analyses"     onclick="showTab('analyses')">Analyses</button>
   <button class="tab-btn"        data-tab="faq"          onclick="showTab('faq')">FAQ</button>
 </div>
 
@@ -53,7 +57,7 @@
     <div class="hero-content">
       <div class="hero-label">Registre national IRVE · data.gouv.fr</div>
       <h1>Bornes de recharge électrique<br /><span class="hero-accent">en Île-de-France</span></h1>
-      <p class="hero-sub">Explorez les <strong>28 839 points de charge</strong> répartis dans <strong>844 communes</strong> — données officielles mises à jour automatiquement.</p>
+      <p class="hero-sub">Explorez les <strong>28 219 points de charge</strong> répartis dans <strong>852 communes</strong> — données officielles mises à jour automatiquement.</p>
 
       <div class="search-bar-wrap">
         <div class="search-bar">
@@ -65,11 +69,11 @@
       </div>
 
       <div class="hero-stats">
-        <div class="hstat"><span class="hstat-num" data-target="28839">0</span><span class="hstat-label">Points de charge</span></div>
+        <div class="hstat"><span class="hstat-num" data-target="28219">0</span><span class="hstat-label">Points de charge</span></div>
         <div class="hstat-sep"></div>
-        <div class="hstat"><span class="hstat-num" data-target="844">0</span><span class="hstat-label">Communes équipées</span></div>
+        <div class="hstat"><span class="hstat-num" data-target="852">0</span><span class="hstat-label">Communes équipées</span></div>
         <div class="hstat-sep"></div>
-        <div class="hstat"><span class="hstat-num" data-target="5401">0</span><span class="hstat-label">Stations</span></div>
+        <div class="hstat"><span class="hstat-num" data-target="5694">0</span><span class="hstat-label">Stations</span></div>
         <div class="hstat-sep"></div>
         <div class="hstat"><span class="hstat-num" data-target="8">0</span><span class="hstat-label">Départements</span></div>
       </div>
@@ -83,21 +87,21 @@
       <div class="stat-grid">
         <div class="stat-card stat-green">
           <div class="stat-card-icon">🔌</div>
-          <div class="stat-card-val">28 839</div>
+          <div class="stat-card-val">28 219</div>
           <div class="stat-card-label">Points de charge (PDC)</div>
-          <div class="stat-card-sub">dont 25 397 publics · +2 430 vs 23/04/2026</div>
+          <div class="stat-card-sub">dont ~26 829 en accès libre · Mise à jour : 09/06/2026</div>
         </div>
         <div class="stat-card stat-blue">
           <div class="stat-card-icon">📍</div>
-          <div class="stat-card-val">5 401</div>
+          <div class="stat-card-val">5 694</div>
           <div class="stat-card-label">Stations</div>
-          <div class="stat-card-sub">~5,3 PDC par station</div>
+          <div class="stat-card-sub">~5,0 PDC par station</div>
         </div>
         <div class="stat-card stat-teal">
           <div class="stat-card-icon">🏘️</div>
-          <div class="stat-card-val">844 / 1 285</div>
+          <div class="stat-card-val">852 / 1 285</div>
           <div class="stat-card-label">Communes équipées</div>
-          <div class="stat-card-sub">65,7 % des communes IDF</div>
+          <div class="stat-card-sub">66,3 % des communes IDF</div>
         </div>
         <div class="stat-card stat-purple">
           <div class="stat-card-icon">⚡</div>
@@ -107,7 +111,7 @@
         </div>
         <div class="stat-card stat-orange">
           <div class="stat-card-icon">🆓</div>
-          <div class="stat-card-val">~96 %</div>
+          <div class="stat-card-val">~95 %</div>
           <div class="stat-card-label">PDC en accès libre</div>
           <div class="stat-card-sub">Sans abonnement obligatoire</div>
         </div>
@@ -134,25 +138,25 @@
     <div class="container">
       <div class="section-header"><h2>Niveaux d'équipement</h2><p>Répartition des communes selon leur densité de bornes</p></div>
       <div class="niveau-grid">
-        <div class="niveau-card niveau-excellent"><div class="niveau-badge">Excellent</div><div class="niveau-count">468</div><div class="niveau-label">communes</div><div class="niveau-desc">≥ 10 PDC / 10 000 hab</div></div>
-        <div class="niveau-card niveau-bon"><div class="niveau-badge">Bon</div><div class="niveau-count">201</div><div class="niveau-label">communes</div><div class="niveau-desc">5 – 10 PDC / 10 000 hab</div></div>
-        <div class="niveau-card niveau-moyen"><div class="niveau-badge">Moyen</div><div class="niveau-count">123</div><div class="niveau-label">communes</div><div class="niveau-desc">2 – 5 PDC / 10 000 hab</div></div>
-        <div class="niveau-card niveau-faible"><div class="niveau-badge">Faible</div><div class="niveau-count">52</div><div class="niveau-label">communes</div><div class="niveau-desc">0,1 – 2 PDC / 10 000 hab</div></div>
-        <div class="niveau-card niveau-absent"><div class="niveau-badge">Absent</div><div class="niveau-count">441</div><div class="niveau-label">communes</div><div class="niveau-desc">Aucune borne recensée</div></div>
+        <div class="niveau-card niveau-excellent"><div class="niveau-badge">Excellent</div><div class="niveau-count">698</div><div class="niveau-label">communes</div><div class="niveau-desc">≥ 10 PDC / 10 000 hab</div></div>
+        <div class="niveau-card niveau-bon"><div class="niveau-badge">Bon</div><div class="niveau-count">110</div><div class="niveau-label">communes</div><div class="niveau-desc">5 – 10 PDC / 10 000 hab</div></div>
+        <div class="niveau-card niveau-moyen"><div class="niveau-badge">Moyen</div><div class="niveau-count">39</div><div class="niveau-label">communes</div><div class="niveau-desc">2 – 5 PDC / 10 000 hab</div></div>
+        <div class="niveau-card niveau-faible"><div class="niveau-badge">Faible</div><div class="niveau-count">5</div><div class="niveau-label">communes</div><div class="niveau-desc">0,1 – 2 PDC / 10 000 hab</div></div>
+        <div class="niveau-card niveau-absent"><div class="niveau-badge">Absent</div><div class="niveau-count">433</div><div class="niveau-label">communes</div><div class="niveau-desc">Aucune borne recensée</div></div>
       </div>
       <div class="niveau-bar-wrap">
         <div class="niveau-bar">
-          <div class="nb-seg nb-excellent" style="width:36.4%" title="Excellent : 468 communes"></div>
-          <div class="nb-seg nb-bon"       style="width:15.6%" title="Bon : 201 communes"></div>
-          <div class="nb-seg nb-moyen"     style="width:9.6%"  title="Moyen : 123 communes"></div>
-          <div class="nb-seg nb-faible"    style="width:4.0%"  title="Faible : 52 communes"></div>
-          <div class="nb-seg nb-absent"    style="width:34.3%" title="Absent : 441 communes"></div>
+          <div class="nb-seg nb-excellent" style="width:54.3%" title="Excellent : 698 communes"></div>
+          <div class="nb-seg nb-bon"       style="width:8.6%"  title="Bon : 110 communes"></div>
+          <div class="nb-seg nb-moyen"     style="width:3.0%"  title="Moyen : 39 communes"></div>
+          <div class="nb-seg nb-faible"    style="width:0.4%"  title="Faible : 5 communes"></div>
+          <div class="nb-seg nb-absent"    style="width:33.7%" title="Absent : 433 communes"></div>
         </div>
         <div class="niveau-bar-legend">
-          <span><i class="dot dot-excellent"></i>Excellent 36 %</span>
-          <span><i class="dot dot-bon"></i>Bon 16 %</span>
-          <span><i class="dot dot-moyen"></i>Moyen 10 %</span>
-          <span><i class="dot dot-faible"></i>Faible 4 %</span>
+          <span><i class="dot dot-excellent"></i>Excellent 54 %</span>
+          <span><i class="dot dot-bon"></i>Bon 9 %</span>
+          <span><i class="dot dot-moyen"></i>Moyen 3 %</span>
+          <span><i class="dot dot-faible"></i>Faible 0,4 %</span>
           <span><i class="dot dot-absent"></i>Absent 34 %</span>
         </div>
       </div>
@@ -415,7 +419,278 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
-     ONGLET 6 — FAQ
+     ONGLET 6 — ÉNERGIE & RÉSEAU
+     ═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-energie">
+  <div class="container" style="padding-top:48px;padding-bottom:48px;">
+    <div class="section-header">
+      <h2>Énergie &amp; Réseau</h2>
+      <p>Potentiel solaire, consommation électrique des bornes et capacité réseau en Île-de-France</p>
+    </div>
+
+    <!-- Section 1 : Potentiel solaire PVGIS -->
+    <div class="energie-section">
+      <div class="energie-section-title">☀️ Potentiel Solaire par département — API PVGIS</div>
+      <p class="energie-intro">
+        Irradiance annuelle optimale calculée en temps réel via l'API <strong>PVGIS v5.2</strong> (JRC, Commission Européenne)
+        pour chaque département d'Île-de-France. Ces données permettent d'évaluer le potentiel d'alimentation solaire
+        des bornes IRVE (autonomie, dimensionnement de panneaux, couverture partielle de la consommation des PDC).
+      </p>
+      <div id="solarGrid" class="solar-grid">
+        <div class="solar-loading">⏳ Interrogation de l'API PVGIS (JRC)…</div>
+      </div>
+      <p class="energie-note" id="solarNote">Source : PVGIS v5.2 · JRC · Commission Européenne · Statistiques horaires 2005–2020 · Système silicium cristallin 1 kWc, pertes 14 %</p>
+    </div>
+
+    <!-- Section 2 : Consommation estimée IRVE -->
+    <div class="energie-section">
+      <div class="energie-section-title">⚡ Consommation électrique estimée des points de charge</div>
+      <p class="energie-intro">
+        Estimation de la consommation annuelle des PDC par département, calculée à partir de la
+        <strong>puissance totale installée</strong> et d'un taux d'utilisation de <strong>15 %</strong>
+        (taux moyen constaté pour les PDC publics français — source AFIREV 2024).
+        Ces données permettent d'évaluer la charge électrique induite par les IRVE sur le réseau local.
+      </p>
+      <div id="consoGrid" class="conso-grid"></div>
+      <p class="energie-note">Formule : Puissance installée (kW) × 8 760 h/an × 15 % = Consommation annuelle estimée · Référence foyer : 4 700 kWh/an (INSEE 2023) · Source taux : AFIREV 2024</p>
+    </div>
+
+    <!-- Section 3 : Enedis Open Data -->
+    <div class="energie-section">
+      <div class="energie-section-title">🔌 Production photovoltaïque &amp; capacité réseau — Enedis Open Data</div>
+      <p class="energie-intro">
+        Production d'énergie photovoltaïque par département (données <strong>Enedis Open Data</strong>),
+        comparée à la consommation estimée des IRVE. Le <strong>taux de couverture solaire</strong>
+        indique dans quelle mesure la production PV locale pourrait couvrir la consommation des bornes de recharge.
+      </p>
+      <div id="enedisGrid" class="enedis-grid">
+        <div class="solar-loading">⏳ Chargement des données Enedis Open Data…</div>
+      </div>
+      <p class="energie-note" id="enedisNote">Source : Enedis Open Data · data.enedis.fr · Production photovoltaïque par commune et domaine de tension</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ONGLET 7 — ANALYSES SPATIALES
+     ═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-analyses">
+
+  <!-- Bandeau intro -->
+  <section class="ana-hero">
+    <div class="container">
+      <div class="ana-hero-label">Analyse géospatiale · Pipeline reproductible</div>
+      <h1 class="ana-hero-title">Où sont les inégalités d'accès à la recharge&nbsp;?</h1>
+      <p class="ana-hero-sub">
+        Une chaîne d'analyses spatiales appliquée aux <strong>1&nbsp;285 communes</strong> d'Île-de-France :
+        mesure des inégalités, accessibilité réseau réelle, facteurs explicatifs et priorisation des
+        futures implantations. Données : base communale officielle · réseau routier &amp; POI OpenStreetMap ·
+        consolidation nationale IRVE (Etalab).
+      </p>
+      <div class="ana-hero-tags">
+        <span class="ana-tag">Statistiques spatiales</span>
+        <span class="ana-tag">Accessibilité E2SFCA</span>
+        <span class="ana-tag">Régressions MGWR / SAR</span>
+        <span class="ana-tag">Équité territoriale</span>
+        <span class="ana-tag">Priorisation MCDA</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI clés des analyses -->
+  <section class="section-light">
+    <div class="container">
+      <div class="section-header"><h2>Résultats clés</h2><p>Les indicateurs marquants issus des analyses spatiales</p></div>
+      <div class="stat-grid">
+        <div class="stat-card stat-orange">
+          <div class="stat-card-icon">⚖️</div>
+          <div class="stat-card-val">0,530</div>
+          <div class="stat-card-label">Indice de Gini (accès)</div>
+          <div class="stat-card-sub">Forte inégalité : les 50 % de communes les moins équipées ne concentrent que 16,9 % des bornes</div>
+        </div>
+        <div class="stat-card stat-blue">
+          <div class="stat-card-icon">🧭</div>
+          <div class="stat-card-val">0,184</div>
+          <div class="stat-card-label">Indice de Moran (I)</div>
+          <div class="stat-card-sub">Autocorrélation spatiale significative (p = 0,001) : l'équipement se regroupe géographiquement</div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-card-icon">⏱️</div>
+          <div class="stat-card-val">98,4 %</div>
+          <div class="stat-card-label">Population à ≤ 5 min d'une borne</div>
+          <div class="stat-card-sub">Temps de route médian : 1,8 min · l'enjeu francilien est l'intensité de l'offre, pas la distance</div>
+        </div>
+        <div class="stat-card stat-purple">
+          <div class="stat-card-icon">🏢</div>
+          <div class="stat-card-val">94 %</div>
+          <div class="stat-card-label">Communes en quasi-monopole</div>
+          <div class="stat-card-sub">818 / 874 communes équipées ont un HHI &gt; 2 500 (un seul opérateur dominant)</div>
+        </div>
+        <div class="stat-card stat-teal">
+          <div class="stat-card-icon">📍</div>
+          <div class="stat-card-val">70,6 %</div>
+          <div class="stat-card-label">Bornes à &lt; 500 m d'un attracteur</div>
+          <div class="stat-card-sub">Gare ou grand commerce à proximité (65,9 % commerce · 35,2 % gare)</div>
+        </div>
+        <div class="stat-card stat-pink">
+          <div class="stat-card-icon">🎯</div>
+          <div class="stat-card-val">0,462</div>
+          <div class="stat-card-label">Gini de l'accessibilité (E2SFCA)</div>
+          <div class="stat-card-sub">Corrélation avec le revenu ≈ 0 : l'inégalité d'accès est géographique, pas sociale</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPLORATEUR CARTOGRAPHIQUE INTERACTIF -->
+  <section class="section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2>Explorer les analyses</h2>
+        <p>Choisissez un indicateur : la carte se recolore instantanément. Survolez une commune pour voir sa valeur, zoomez et déplacez-vous librement. (Les scénarios de décision sont présentés dans la section suivante.)</p>
+      </div>
+      <div class="ana-map-controls">
+        <label class="ana-select-label" for="anaIndicator">Indicateur cartographié&nbsp;:</label>
+        <select id="anaIndicator" class="ana-select"></select>
+      </div>
+      <div class="ana-map-wrap">
+        <div id="anaMap"></div>
+        <div class="ana-legend" id="anaLegend"></div>
+      </div>
+      <div class="ana-desc" id="anaDesc"></div>
+    </div>
+  </section>
+
+  <!-- SCÉNARIOS DE DÉCISION -->
+  <section class="section-light">
+    <div class="container">
+      <div class="section-header">
+        <h2>Scénarios de décision</h2>
+        <p>Quatre stratégies de priorisation des futures implantations — glissez le curseur pour comparer les cartes</p>
+      </div>
+      <div class="ana-scen">
+        <div class="ana-scen-head">🎚️ Choisir un scénario</div>
+        <div class="ana-scen-sub">Chaque scénario re-pondère les critères de priorité. Glissez le curseur (ou cliquez un nom) pour recolorer la carte.</div>
+        <input type="range" id="anaScenSlider" class="ana-scen-slider" min="0" max="3" step="1" value="0" />
+        <div class="ana-scen-labels" id="anaScenLabels">
+          <span data-i="0">Équité</span>
+          <span data-i="1">Efficacité</span>
+          <span data-i="2">Résilience</span>
+          <span data-i="3">Couverture max</span>
+        </div>
+      </div>
+      <div class="ana-map-wrap">
+        <div id="anaScenMap"></div>
+        <div class="ana-legend" id="anaScenLegend"></div>
+      </div>
+      <div class="ana-desc" id="anaScenDesc"></div>
+      <div class="ana-scen-weights" id="anaScenWeights"></div>
+    </div>
+  </section>
+
+  <!-- PONDÉRATION PERSONNALISÉE -->
+  <section class="section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2>Composez votre propre priorité</h2>
+        <p>Ajustez le poids de chaque critère selon vos objectifs : la carte de priorité se recalcule en direct</p>
+      </div>
+      <div class="ana-weights-grid">
+        <div class="ana-weights-panel">
+          <div class="ana-w-panel-title">⚖️ Poids des critères</div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Densité de population</span><span class="ana-w-val" id="wv_c_den">25 %</span></div>
+            <input type="range" id="w_c_den" class="ana-w-slider" min="0" max="100" step="1" value="25" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Taux de véhicules électriques</span><span class="ana-w-val" id="wv_c_ve">20 %</span></div>
+            <input type="range" id="w_c_ve" class="ana-w-slider" min="0" max="100" step="1" value="20" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Déficit de bornes</span><span class="ana-w-val" id="wv_c_def">20 %</span></div>
+            <input type="range" id="w_c_def" class="ana-w-slider" min="0" max="100" step="1" value="20" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Faible accessibilité (E2SFCA)</span><span class="ana-w-val" id="wv_c_acc">15 %</span></div>
+            <input type="range" id="w_c_acc" class="ana-w-slider" min="0" max="100" step="1" value="15" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Équité (faible revenu)</span><span class="ana-w-val" id="wv_c_rev">10 %</span></div>
+            <input type="range" id="w_c_rev" class="ana-w-slider" min="0" max="100" step="1" value="10" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Attracteurs (gares &amp; commerces)</span><span class="ana-w-val" id="wv_c_att">10 %</span></div>
+            <input type="range" id="w_c_att" class="ana-w-slider" min="0" max="100" step="1" value="10" />
+          </div>
+          <div class="ana-w-row">
+            <div class="ana-w-label"><span>Résilience (anti-monopole)</span><span class="ana-w-val" id="wv_c_mono">0 %</span></div>
+            <input type="range" id="w_c_mono" class="ana-w-slider" min="0" max="100" step="1" value="0" />
+          </div>
+          <button class="ana-w-reset" id="anaWReset">↺ Réinitialiser les poids par défaut</button>
+        </div>
+        <div class="ana-w-mapcol">
+          <div class="ana-map-wrap">
+            <div id="anaWMap"></div>
+            <div class="ana-legend" id="anaWLegend"></div>
+          </div>
+          <div class="ana-w-top" id="anaWTop"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRAPHIQUES COMPLÉMENTAIRES -->
+  <section class="section-light">
+    <div class="container">
+      <div class="section-header">
+        <h2>Graphiques complémentaires</h2>
+        <p>Distributions et diagrammes qui ne se prêtent pas à la carte (cliquez pour agrandir)</p>
+      </div>
+      <div class="ana-figures">
+        <a class="ana-fig" href="analyses/lorenz_gini.png" target="_blank" rel="noopener">
+          <img src="analyses/lorenz_gini.png" alt="Courbe de Lorenz" loading="lazy" />
+          <span class="ana-fig-cap">Courbe de Lorenz — inégalité de répartition des bornes (Gini = 0,53)</span>
+        </a>
+        <a class="ana-fig" href="analyses/moran_scatter.png" target="_blank" rel="noopener">
+          <img src="analyses/moran_scatter.png" alt="Diagramme de Moran" loading="lazy" />
+          <span class="ana-fig-cap">Diagramme de Moran — autocorrélation spatiale (I = 0,184)</span>
+        </a>
+        <a class="ana-fig" href="analyses/quartiles_revenu.png" target="_blank" rel="noopener">
+          <img src="analyses/quartiles_revenu.png" alt="Équipement par quartile de revenu" loading="lazy" />
+          <span class="ana-fig-cap">Équipement &amp; accessibilité par quartile de revenu communal</span>
+        </a>
+        <a class="ana-fig" href="analyses/scenarios.png" target="_blank" rel="noopener">
+          <img src="analyses/scenarios.png" alt="Comparaison des scénarios" loading="lazy" />
+          <span class="ana-fig-cap">Comparaison des 4 scénarios de décision</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Méthodologie / sources -->
+  <section class="section-light">
+    <div class="container">
+      <div class="ana-method">
+        <h3>Méthodologie &amp; sources</h3>
+        <p>
+          Pipeline reproductible en 4 familles (statistiques spatiales, accessibilité, explication, priorisation),
+          construit sur la base communale officielle IRVE (1 285 communes d'Île-de-France, clé de jointure : code INSEE),
+          le réseau routier et les points d'intérêt <strong>OpenStreetMap</strong>, et la consolidation nationale
+          des points de charge (<strong>Etalab / data.gouv.fr</strong>). Outils : Python — PySAL (esda, libpysal, spreg),
+          mgwr, OSMnx, GeoPandas. Les cartes sont cliquables pour affichage en pleine résolution.
+        </p>
+        <p class="ana-method-note">
+          Indicateurs de référence : <em>temps_borne_min</em> (accès), <em>e2sfca_pdc_pop</em> (accessibilité),
+          <em>score_topsis / classe_priorite</em> (priorité d'implantation).
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ONGLET 8 — FAQ
      ═══════════════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-faq">
   <div class="container" style="padding-top:48px;padding-bottom:48px;">
@@ -424,7 +699,7 @@
 
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">Combien y a-t-il de bornes de recharge en Île-de-France ?<span class="faq-arrow">▾</span></button>
-        <div class="faq-a">Au 23 avril 2026, l'Île-de-France compte <strong>28 839 points de charge (PDC)</strong> toutes sources confondues, dont <strong>25 397 PDC publics</strong>, répartis dans <strong>5 401 stations</strong> sur <strong>844 communes</strong>. +2 430 PDC supplémentaires intègrent désormais les PDC réservés (+1 045) et le réseau Gireve (+2 397).</div>
+        <div class="faq-a">Au 9 juin 2026, l'Île-de-France compte <strong>28 219 points de charge (PDC)</strong> recensés dans le registre national consolidé (data.gouv.fr / AFIREV), répartis dans <strong>5 694 stations</strong> sur <strong>852 communes</strong> équipées (sur 1 285). Soit une moyenne de <strong>22,4 PDC pour 10 000 habitants</strong>.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">Quels types de connecteurs sont disponibles ?<span class="faq-arrow">▾</span></button>
@@ -477,6 +752,7 @@
 <script src="lib/communes_idf.js"></script>
 <script src="lib/pdc_detail.js"></script>
 <script src="data_embed.js"></script>
+<script src="analyses_embed.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
