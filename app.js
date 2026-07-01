@@ -666,7 +666,7 @@ function buildChoropleth(colorBy) {
 
   var COLORS5 = colorBy === 'densite'
     ? ['#f3e5f5','#ce93d8','#ab47bc','#7b1fa2','#4a148c']
-    : ['#f1f8e9','#a5d6a7','#66bb6a','#2e7d32','#1b5e20'];
+    : ['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15'];
 
   function getColor(val) {
     if (!val || val === 0) return '#e0e0e0';
@@ -922,7 +922,7 @@ function renderLegend(colorBy, breaks) {
     var title  = colorBy==='densite' ? 'Densité (hab/km²)' : 'Revenu médian (€/an)';
     var COLORS5= colorBy==='densite'
       ? ['#f3e5f5','#ce93d8','#ab47bc','#7b1fa2','#4a148c']
-      : ['#f1f8e9','#a5d6a7','#66bb6a','#2e7d32','#1b5e20'];
+      : ['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15'];
     html='<div class="map-legend-title">'+title+'</div>';
     html+='<div class="legend-item"><span class="legend-swatch" style="background:#e0e0e0"></span>N/D</div>';
     for(var i=4;i>=0;i--){
