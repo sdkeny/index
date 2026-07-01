@@ -1426,31 +1426,23 @@ function _renderEnedisEstimated(msg) {
       }).join('');
 }
 
-/* ── Potentiel solaire d'une commune (depuis la fiche) ── */
+/* ── Potentiel solaire d'une commune (depuis la fiche) ──
+   Valeur PVGIS du département de la commune (PVGIS_STATIC) : l'irradiance
+   varie de moins de 3 % sur l'Île-de-France, et l'API PVGIS n'a pas de CORS
+   (appel navigateur impossible). */
 window.fetchPVGISForCommune = function(code, lat, lon) {
   var box = document.getElementById('pvgis-' + code);
   if (!box) return;
   box.style.display = 'block';
-  box.innerHTML = '⏳ Interrogation PVGIS…';
-
-  fetch('https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat=' + lat + '&lon=' + lon + '&peakpower=1&loss=14&outputformat=json')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var fixed = data.outputs.totals.fixed;
-      var ey    = Math.round(fixed['E_y']);
-      var hiy   = Math.round(fixed['H(i)_y']);
-      var slope = data.inputs && data.inputs.mounting_system
-                ? data.inputs.mounting_system.fixed.slope.value : '—';
-      box.innerHTML =
-        '☀️ Données <strong>PVGIS (JRC)</strong><br>'
-        + 'Production optimale : <strong>' + ey + ' kWh/kWc/an</strong><br>'
-        + 'Irradiance inclinée : <strong>' + hiy + ' kWh/m²/an</strong><br>'
-        + 'Inclinaison optimale : <strong>' + slope + '°</strong> plein sud';
-    })
-    .catch(function() {
-      box.innerHTML = '⚠️ API PVGIS indisponible pour cette commune.';
-    });
-};;
+  var dept = String(code).slice(0, 2);
+  var v = PVGIS_STATIC[dept];
+  if (!v) { box.innerHTML = '⚠️ Potentiel solaire indisponible pour cette commune.'; return; }
+  box.innerHTML =
+    '☀️ Données <strong>PVGIS (JRC)</strong> — représentatives du département ' + dept + '<br>'
+    + 'Production optimale : <strong>' + v.ey + ' kWh/kWc/an</strong><br>'
+    + 'Irradiance inclinée : <strong>' + v.hiy + ' kWh/m²/an</strong><br>'
+    + 'Inclinaison optimale : <strong>' + v.slope + '°</strong> plein sud';
+};
 
 /* ════════════════════════════════════════════════
    ANALYSES SPATIALES — cartes interactives (Leaflet)
