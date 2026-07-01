@@ -1168,6 +1168,22 @@ var DEPT_COORDS = {
   '95': [49.0498,  2.0552]
 };
 
+/* Valeurs PVGIS pré-calculées par département (API JRC v5.2, données 2005–2020,
+   1 kWc silicium cristallin, pertes 14 %, inclinaison optimale plein sud).
+   Pré-calcul nécessaire car l'API PVGIS ne renvoie pas d'en-tête CORS
+   → un fetch direct depuis le navigateur est bloqué.
+   ey = kWh/kWc/an · hiy = kWh/m²/an · slope = inclinaison optimale (°) */
+var PVGIS_STATIC = {
+  '75': { ey: 1136, hiy: 1419, slope: 38 },
+  '77': { ey: 1131, hiy: 1415, slope: 38 },
+  '78': { ey: 1134, hiy: 1415, slope: 38 },
+  '91': { ey: 1158, hiy: 1445, slope: 38 },
+  '92': { ey: 1157, hiy: 1444, slope: 39 },
+  '93': { ey: 1128, hiy: 1411, slope: 39 },
+  '94': { ey: 1140, hiy: 1425, slope: 38 },
+  '95': { ey: 1125, hiy: 1404, slope: 39 }
+};
+
 var _energieReady = false;
 var _pvgisCache   = {};
 var _centroidCache = null;
@@ -1236,28 +1252,23 @@ function _renderConsoIRVE() {
   }).join('');
 }
 
-/* ── Section 1 : PVGIS (appels API) ── */
+/* ── Section 1 : PVGIS (données pré-calculées, cf. PVGIS_STATIC) ── */
 function _fetchAllPVGIS() {
   var grid = document.getElementById('solarGrid');
   if (!grid) return;
 
-  var promises = DEPTS.map(function(d) {
-    var c = DEPT_COORDS[d.code];
-    if (!c) return Promise.resolve({dept: d, data: null});
-    var url = 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc'
-      + '?lat=' + c[0] + '&lon=' + c[1]
-      + '&peakpower=1&loss=14&outputformat=json';
-    return fetch(url)
-      .then(function(r) { return r.json(); })
-      .then(function(json) { return {dept: d, data: json}; })
-      .catch(function()   { return {dept: d, data: null}; });
+  /* Reconstruit la structure attendue par _renderSolarCards à partir des
+     valeurs statiques (l'API PVGIS n'a pas de CORS → pas d'appel navigateur). */
+  var results = DEPTS.map(function(d) {
+    var v = PVGIS_STATIC[d.code];
+    if (!v) return { dept: d, data: null };
+    return { dept: d, data: {
+      outputs: { totals: { fixed: { 'E_y': v.ey, 'H(i)_y': v.hiy } } },
+      inputs:  { mounting_system: { fixed: { slope: { value: v.slope } } } }
+    }};
   });
 
-  Promise.all(promises).then(function(results) {
-    _renderSolarCards(results);
-  }).catch(function() {
-    grid.innerHTML = '<div class="solar-loading">⚠️ API PVGIS temporairement indisponible.</div>';
-  });
+  _renderSolarCards(results);
 }
 
 function _renderSolarCards(results) {
