@@ -312,9 +312,9 @@ a{color:var(--accent)}
   <dl class="facts">
     <div class="fact"><dt>Périmètre</dt><dd>1 285 communes · 8 départements</dd></div>
     <div class="fact"><dt>Référentiel</dt><dd>EPSG:2154 — Lambert-93</dd></div>
-    <div class="fact"><dt>Millésime</dt><dd>DATE_TAG 2026-06-10</dd></div>
+    <div class="fact"><dt>Millésime</dt><dd>DATE_TAG 2026-08-24</dd></div>
     <div class="fact"><dt>Runtime</dt><dd>Python 3.14.2</dd></div>
-    <div class="fact"><dt>Scripts documentés</dt><dd>16 + 3 à la racine</dd></div>
+    <div class="fact"><dt>Scripts documentés</dt><dd>19 + 5 à la racine</dd></div>
   </dl>
 </header>
 
@@ -352,12 +352,12 @@ a{color:var(--accent)}
     <div class="step"><div class="n">0</div><div>
       <h4>Préparation et nettoyage</h4>
       <p>Le CSV officiel devient une base de travail contrôlée, enrichie et géoréférencée.</p>
-      <span class="out">→ BASE_IRVE_IDF_PROPRE_2026-06-10.gpkg</span>
+      <span class="out">→ BASE_IRVE_IDF_PROPRE_2026-08-24.gpkg</span>
     </div></div>
     <div class="step"><div class="n">1</div><div>
       <h4>Statistiques spatiales</h4>
       <p>La répartition des bornes est-elle structurée dans l'espace ? Moran, LISA, Gi*, KDE.</p>
-      <span class="out">→ PHASE1_STATS_SPATIALES_2026-06-10.gpkg</span>
+      <span class="out">→ PHASE1_STATS_SPATIALES_2026-08-24.gpkg</span>
     </div></div>
     <div class="step"><div class="n">4</div><div>
       <h4>Accessibilité et explication</h4>
@@ -367,7 +367,7 @@ a{color:var(--accent)}
     <div class="step"><div class="n">5</div><div>
       <h4>Équité territoriale</h4>
       <p>Combien d'inégalité ? Gini/Lorenz, gradient par quartile de revenu, concentration des opérateurs, co-localisation avec les attracteurs.</p>
-      <span class="out">→ EQUITE_2026-06-10.gpkg · POI_COLOCALISATION_2026-06-10.gpkg</span>
+      <span class="out">→ EQUITE_2026-08-24.gpkg · POI_COLOCALISATION_2026-08-24.gpkg</span>
     </div></div>
     <div class="step"><div class="n">6</div><div>
       <h4>MCDA — priorisation</h4>
@@ -425,8 +425,8 @@ a{color:var(--accent)}
           <li><strong>IRVE_IDF_2026-04-28.gpkg</strong> — couche <code>toutes_communes</code>, géométries communales</li>
         </ul></div>
         <div class="block"><p class="lbl">Sorties</p><ul>
-          <li><strong>BASE_IRVE_IDF_PROPRE_2026-06-10.csv</strong> — utf-8-sig, sép. <code>;</code></li>
-          <li><strong>BASE_IRVE_IDF_PROPRE_2026-06-10.gpkg</strong> — couche <code>communes_propre</code>, EPSG:2154</li>
+          <li><strong>BASE_IRVE_IDF_PROPRE_2026-08-24.csv</strong> — utf-8-sig, sép. <code>;</code></li>
+          <li><strong>BASE_IRVE_IDF_PROPRE_2026-08-24.gpkg</strong> — couche <code>communes_propre</code>, EPSG:2154</li>
         </ul></div>
       </div>
 
@@ -465,7 +465,7 @@ BASE_DIR = os.path.join('Projet IRVE', 'Base de donnée')
 CSV_IN   = os.path.join(BASE_DIR, 'BASE DE DONNEES_IRVE_OFFICIELLE.csv')
 GPKG_GEO = 'IRVE_IDF_2026-04-28.gpkg'        # geometrie communes IDF (EPSG:2154)
 GEO_LAYER = 'toutes_communes'
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 CSV_OUT  = os.path.join(BASE_DIR, f'BASE_IRVE_IDF_PROPRE_{DATE_TAG}.csv')
 GPKG_OUT = os.path.join(BASE_DIR, f'BASE_IRVE_IDF_PROPRE_{DATE_TAG}.gpkg')
 
@@ -691,8 +691,8 @@ tend vers 0. Le taux brut est conservé comme test de robustesse.</div>
 =====================================================================
  PHASE 1 — STATISTIQUES SPATIALES
  Projet IRVE Ile-de-France
- Entree : BASE_IRVE_IDF_PROPRE_2026-06-10.gpkg (sortie Phase 0, EPSG:2154)
- Sorties: PHASE1_STATS_SPATIALES_2026-06-10.gpkg + figures PNG
+ Entree : BASE_IRVE_IDF_PROPRE_2026-08-24.gpkg (sortie Phase 0, EPSG:2154)
+ Sorties: PHASE1_STATS_SPATIALES_2026-08-24.gpkg + figures PNG
  Lancer depuis la racine : python "Projet IRVE/Base de donnée/phase1_stats_spatiales.py"
 =====================================================================
 Etapes : 3.1 Matrice W (Queen + kNN-6)
@@ -718,13 +718,13 @@ from esda.getisord import G_Local
 from scipy.stats import gaussian_kde, spearmanr
 
 # ---- chemins ----
-DATE_TAG    = '2026-06-10'
+DATE_TAG    = '2026-08-24'
 ANALYSE_DIR = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale')
 PHASE0_DIR  = os.path.join(ANALYSE_DIR, 'Préparer et nettoyer les données')
 OUT_DIR     = os.path.join(ANALYSE_DIR, 'Statistiques spatiales')
 GPKG_IN  = os.path.join(PHASE0_DIR, f'BASE_IRVE_IDF_PROPRE_{DATE_TAG}.gpkg')
 GPKG_OUT = os.path.join(OUT_DIR, f'PHASE1_STATS_SPATIALES_{DATE_TAG}.gpkg')
-PTS_CSV  = 'Projet IRVE/consolidation-etalab-schema-irve-statique-v-2.3.1-20260609.csv'
+PTS_CSV  = 'Projet IRVE/consolidation-etalab-schema-irve-statique-v-2.3.1-20260824.csv'
 FIG_DIR  = os.path.join(OUT_DIR, 'figures')
 os.makedirs(OUT_DIR, exist_ok=True)
 os.makedirs(FIG_DIR, exist_ok=True)
@@ -1219,7 +1219,7 @@ print('=' * 70)</code></pre>
  Entrees :
    - graphe routier OpenStreetMap d'Ile-de-France (telecharge, mis en cache)
    - bornes IRVE : consolidation-etalab-schema-irve-statique (coords WGS84)
-   - communes IDF : BASE_IRVE_IDF_PROPRE_2026-06-10.gpkg (sortie Phase 0, EPSG:2154)
+   - communes IDF : BASE_IRVE_IDF_PROPRE_2026-08-24.gpkg (sortie Phase 0, EPSG:2154)
  Sorties :
    - ISOCHRONES_COUVERTURE_&lt;date&gt;.geojson   (polygones 5/10/15 min, WGS84)
    - PHASE4_1_ISOCHRONES_&lt;date&gt;.gpkg        (communes + taux de couverture)
@@ -1257,7 +1257,7 @@ import matplotlib.patches as mpatches
 # --------------------------------------------------------------------- #
 # CHEMINS &amp; PARAMETRES
 # --------------------------------------------------------------------- #
-DATE_TAG    = '2026-06-10'
+DATE_TAG    = '2026-08-24'
 ANALYSE_DIR = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale')
 PHASE0_DIR  = os.path.join(ANALYSE_DIR, 'Préparer et nettoyer les données')
 OUT_DIR     = os.path.join(ANALYSE_DIR, 'Accessibilité et explication')
@@ -1267,7 +1267,7 @@ os.makedirs(FIG_DIR, exist_ok=True)
 
 GPKG_IN  = os.path.join(PHASE0_DIR, f'BASE_IRVE_IDF_PROPRE_{DATE_TAG}.gpkg')
 PTS_CSV  = os.path.join('Projet IRVE',
-                        'consolidation-etalab-schema-irve-statique-v-2.3.1-20260609.csv')
+                        'consolidation-etalab-schema-irve-statique-v-2.3.1-20260824.csv')
 GRAPH_CACHE = os.path.join(OUT_DIR, 'graphe_idf_drive_proj_2154.pkl')
 
 GEOJSON_OUT = os.path.join(OUT_DIR, f'ISOCHRONES_COUVERTURE_{DATE_TAG}.geojson')
@@ -1623,8 +1623,8 @@ t₀ = 15 min  →  G(0)=1 · G(5)≈0,86 · G(10)≈0,49 · G(15)=0</div>
  Methode : Enhanced 2-Step Floating Catchment Area
            Luo &amp; Qi (2009), version gaussienne McGrail (2012)
  Entrees :
-   - ISOCHRONES_STATION_COMMUNE_2026-06-10.csv  (friction, sortie 4.1)
-   - PHASE4_1_ISOCHRONES_2026-06-10.gpkg        (communes + demande, EPSG:2154)
+   - ISOCHRONES_STATION_COMMUNE_2026-08-24.csv  (friction, sortie 4.1)
+   - PHASE4_1_ISOCHRONES_2026-08-24.gpkg        (communes + demande, EPSG:2154)
    - consolidation-etalab-schema-irve-statique  (offre par borne : PDC, kW)
  Sorties :
    - PHASE4_2_E2SFCA_&lt;date&gt;.gpkg     (communes + scores E2SFCA + classes)
@@ -1652,12 +1652,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 # ---------------------------------------------------------------- chemins
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 HERE   = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'Accessibilité et explication')
 GPKG_IN  = os.path.join(HERE, f'PHASE4_1_ISOCHRONES_{DATE_TAG}.gpkg')
 MATRIX   = os.path.join(HERE, f'ISOCHRONES_STATION_COMMUNE_{DATE_TAG}.csv')
 PTS_CSV  = os.path.join('Projet IRVE',
-                        'consolidation-etalab-schema-irve-statique-v-2.3.1-20260609.csv')
+                        'consolidation-etalab-schema-irve-statique-v-2.3.1-20260824.csv')
 GPKG_OUT = os.path.join(HERE, f'PHASE4_2_E2SFCA_{DATE_TAG}.gpkg')
 METRICS  = os.path.join(HERE, 'PHASE4_2_metrics.json')
 FIG_DIR  = os.path.join(HERE, 'figures')
@@ -1902,7 +1902,7 @@ print('\nTERMINE — Phase 4.2 E2SFCA.')</code></pre>
  Projet IRVE Ile-de-France — Famille 2 : Accessibilite et explication
  Question : le revenu (la densite, le parc VE...) pese-t-il autant
             partout, ou plus dans certaines zones, et a quelle echelle ?
- Entree  : PHASE4_2_E2SFCA_2026-06-10.gpkg (EPSG:2154)
+ Entree  : PHASE4_2_E2SFCA_2026-08-24.gpkg (EPSG:2154)
  Sorties : PHASE4_3_MGWR_&lt;date&gt;.gpkg (coeffs locaux + significativite)
            PHASE4_3_metrics.json + figures/43_*.png
  Lancer depuis la racine :
@@ -1927,7 +1927,7 @@ import matplotlib.pyplot as plt
 from mgwr.sel_bw import Sel_BW
 from mgwr.gwr import MGWR
 
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 HERE = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'Accessibilité et explication')
 GPKG_IN  = os.path.join(HERE, f'PHASE4_2_E2SFCA_{DATE_TAG}.gpkg')
 GPKG_OUT = os.path.join(HERE, f'PHASE4_3_MGWR_{DATE_TAG}.gpkg')
@@ -2133,7 +2133,7 @@ if __name__ == '__main__':
  Projet IRVE Ile-de-France — Famille 2 : Accessibilite et explication
  Objectif : expliquer l'accessibilite par les variables socio-eco, en
             corrigeant la "contagion spatiale" (autocorrelation).
- Entree  : PHASE4_2_E2SFCA_2026-06-10.gpkg (EPSG:2154)
+ Entree  : PHASE4_2_E2SFCA_2026-08-24.gpkg (EPSG:2154)
  Sorties : PHASE4_4_SARSEM_&lt;date&gt;.gpkg (residus OLS + modele retenu)
            PHASE4_4_metrics.json + figures/44_*.png
  Lancer depuis la racine :
@@ -2157,7 +2157,7 @@ from libpysal.weights import Queen
 from esda.moran import Moran
 from spreg import OLS, ML_Lag, ML_Error
 
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 HERE = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'Accessibilité et explication')
 GPKG_IN  = os.path.join(HERE, f'PHASE4_2_E2SFCA_{DATE_TAG}.gpkg')
 GPKG_OUT = os.path.join(HERE, f'PHASE4_4_SARSEM_{DATE_TAG}.gpkg')
@@ -2365,15 +2365,15 @@ def save(df, name):
 ID = ['Code INSEE', 'Commune', 'Département', 'Population']
 
 # ---- 4.1 Isochrones : accès par commune ----
-gi = gpd.read_file(findone('PHASE4_1_ISOCHRONES_2026-06-10.gpkg'))
-print('Isochrones :', findone('PHASE4_1_ISOCHRONES_2026-06-10.gpkg'))
+gi = gpd.read_file(findone('PHASE4_1_ISOCHRONES_2026-08-24.gpkg'))
+print('Isochrones :', findone('PHASE4_1_ISOCHRONES_2026-08-24.gpkg'))
 isc = ['temps_borne_min', 'classe_acces', 'couv_5min_pct', 'couv_10min_pct', 'couv_15min_pct']
 di = gi[[c for c in ID if c in gi.columns] + [c for c in isc if c in gi.columns]].copy()
 save(di, 'donnees_isochrones_4-1.csv')
 
 # ---- 4.2 E2SFCA : accessibilité offre/demande par commune ----
-ge = gpd.read_file(findone('PHASE4_2_E2SFCA_2026-06-10.gpkg'))
-print('E2SFCA     :', findone('PHASE4_2_E2SFCA_2026-06-10.gpkg'))
+ge = gpd.read_file(findone('PHASE4_2_E2SFCA_2026-08-24.gpkg'))
+print('E2SFCA     :', findone('PHASE4_2_E2SFCA_2026-08-24.gpkg'))
 esc = ['e2sfca_pdc_pop', 'e2sfca_kw_pop', 'e2sfca_pdc_ve', 'classe_e2sfca']
 de = ge[[c for c in ID if c in ge.columns] + [c for c in esc if c in ge.columns]].copy()
 for c in ['e2sfca_pdc_pop', 'e2sfca_kw_pop', 'e2sfca_pdc_ve']:
@@ -2406,8 +2406,8 @@ def save(df, name):
 ID = ['Code INSEE', 'Commune', 'Département']
 
 # ---- MGWR : coefficients locaux + significativité ----
-gm = gpd.read_file(findone('CARTES_MGWR_COEFFICIENTS_2026-06-10.gpkg'))
-print('MGWR source :', findone('CARTES_MGWR_COEFFICIENTS_2026-06-10.gpkg'))
+gm = gpd.read_file(findone('CARTES_MGWR_COEFFICIENTS_2026-08-24.gpkg'))
+print('MGWR source :', findone('CARTES_MGWR_COEFFICIENTS_2026-08-24.gpkg'))
 coef = [c for c in gm.columns if c.startswith('coef_')]
 sig = [c for c in gm.columns if c.startswith('sig_')]
 dm = gm[[c for c in ID if c in gm.columns] + coef + sig].copy()
@@ -2416,8 +2416,8 @@ for c in coef:
 save(dm, 'donnees_cartes_MGWR.csv')
 
 # ---- SAR : résidus OLS / SAR + équipement prédit ----
-gs = gpd.read_file(findone('PHASE4_4_SARSEM_2026-06-10.gpkg'))
-print('SAR source  :', findone('PHASE4_4_SARSEM_2026-06-10.gpkg'))
+gs = gpd.read_file(findone('PHASE4_4_SARSEM_2026-08-24.gpkg'))
+print('SAR source  :', findone('PHASE4_4_SARSEM_2026-08-24.gpkg'))
 sarc = [c for c in ['resid_ols', 'resid_modele', 'yhat_modele'] if c in gs.columns]
 ds = gs[[c for c in ID if c in gs.columns] + ['PDC / 10 000 hab'] + sarc].copy()
 for c in sarc:
@@ -2469,12 +2469,12 @@ import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-DATE = '2026-06-10'
+DATE = '2026-08-24'
 HERE = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'Équité territoriale')
 FIG = os.path.join(HERE, 'figures'); os.makedirs(FIG, exist_ok=True)
 GPKG_OUT = os.path.join(HERE, f'EQUITE_{DATE}.gpkg')
 METRICS = os.path.join(HERE, 'EQUITE_metrics.json')
-PTS = glob.glob('Projet IRVE/consolidation-etalab-schema-irve-statique-v-2.3.1-20260609.csv')[0]
+PTS = glob.glob('Projet IRVE/consolidation-etalab-schema-irve-statique-v-2.3.1-20260824.csv')[0]
 
 
 def titre(n, t): print('\n' + '=' * 64 + f'\n  {n} — {t}\n' + '=' * 64)
@@ -2651,7 +2651,7 @@ import osmnx as ox
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-DATE = '2026-06-10'
+DATE = '2026-08-24'
 HERE = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'Équité territoriale')
 FIG = os.path.join(HERE, 'figures'); os.makedirs(FIG, exist_ok=True)
 GPKG_OUT = os.path.join(HERE, f'POI_COLOCALISATION_{DATE}.gpkg')
@@ -2670,7 +2670,7 @@ def findone(p): return glob.glob(os.path.join('Projet IRVE', '**', p), recursive
 
 
 titre(1, 'CHARGER BORNES + EMPRISE')
-bornes = gpd.read_file(findone('BORNES_IRVE_IDF_2026-06-09.gpkg')).to_crs(2154)
+bornes = gpd.read_file(findone('BORNES_IRVE_IDF_2026-08-24.gpkg')).to_crs(2154)
 print(f'Bornes : {len(bornes)}')
 com = gpd.read_file(findone(f'EQUITE_{DATE}.gpkg'))
 com['Code INSEE'] = com['Code INSEE'].astype(str).str.zfill(5)
@@ -2853,7 +2853,7 @@ WLC    — somme pondérée directe des critères normalisés 0-1</div>
  Projet IRVE Ile-de-France — Famille 4
  Methode : AHP (poids) -&gt; TOPSIS (classement) + WLC (suitabilite)
            + scenarios de decision (re-ponderation).
- Entree  : PHASE4_2_E2SFCA_2026-06-10.gpkg (localise par glob)
+ Entree  : PHASE4_2_E2SFCA_2026-08-24.gpkg (localise par glob)
  Sorties : MCDA_PRIORISATION_&lt;date&gt;.gpkg + MCDA_metrics.json
            + MCDA_TOP_COMMUNES.csv + figures/*.png
  Lancer  : python "Projet IRVE/Base de donnee/Analyse spatiale/MCDA - Priorisation/phase6_mcda.py"
@@ -2878,7 +2878,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from scipy.stats import spearmanr
 
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 OUT_DIR = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'MCDA - Priorisation')
 FIG_DIR = os.path.join(OUT_DIR, 'figures')
 os.makedirs(FIG_DIR, exist_ok=True)
@@ -3130,7 +3130,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 OUT_DIR = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'MCDA - Priorisation',
                        'Scénarios de décision (S1-S4)')
 FIG_DIR = os.path.join(OUT_DIR, 'figures'); os.makedirs(FIG_DIR, exist_ok=True)
@@ -3331,7 +3331,7 @@ import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-DATE_TAG = '2026-06-10'
+DATE_TAG = '2026-08-24'
 OUT_DIR = os.path.join('Projet IRVE', 'Base de donnée', 'Analyse spatiale', 'MCDA - Priorisation',
                        'Scénarios de décision (S1-S4)')
 FIG_DIR = os.path.join(OUT_DIR, 'figures'); os.makedirs(FIG_DIR, exist_ok=True)
@@ -3494,7 +3494,7 @@ FIG = os.path.join(HERE, 'figures'); os.makedirs(FIG, exist_ok=True)
 
 def findone(p):
     m = glob.glob(os.path.join('Projet IRVE', '**', p), recursive=True); return m[0]
-g = gpd.read_file(findone('MCDA_4SCENARIOS_2026-06-10.gpkg'))
+g = gpd.read_file(findone('MCDA_4SCENARIOS_2026-08-24.gpkg'))
 M = json.load(open(findone('MCDA_4scenarios_metrics.json'), encoding='utf-8'))
 
 CLS = {'Très faible':'#2c7bb6','Faible':'#abd9e9','Moyenne':'#ffffbf','Haute':'#fdae61','Très haute':'#d7191c'}
@@ -3610,7 +3610,7 @@ import numpy as np, pandas as pd, geopandas as gpd
 HERE = os.path.dirname(os.path.abspath(__file__))
 def findone(p):
     return glob.glob(os.path.join('Projet IRVE', '**', p), recursive=True)[0]
-g = gpd.read_file(findone('MCDA_4SCENARIOS_2026-06-10.gpkg'))
+g = gpd.read_file(findone('MCDA_4SCENARIOS_2026-08-24.gpkg'))
 M = json.load(open(findone('MCDA_4scenarios_metrics.json'), encoding='utf-8'))
 def save(df, name):
     p = os.path.join(HERE, name)
@@ -3665,7 +3665,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import warnings; warnings.filterwarnings('ignore')
 import geopandas as gpd, numpy as np
 
-m = glob.glob(os.path.join('Projet IRVE', '**', 'PHASE4_2_E2SFCA_2026-06-10.gpkg'), recursive=True)
+m = glob.glob(os.path.join('Projet IRVE', '**', 'PHASE4_2_E2SFCA_2026-08-24.gpkg'), recursive=True)
 print('trouve:', m)
 P = m[0]
 g = gpd.read_file(P)
@@ -3735,7 +3735,7 @@ print("corr(Revenu inverse, e2sfca) =", corr('Revenu inverse (0-1)', 'e2sfca_pdc
       <thead><tr><th>Convention</th><th>Mise en œuvre</th><th>Raison</th></tr></thead>
       <tbody>
         <tr><td><b>Sortie console UTF-8</b></td><td class="mono">sys.stdout = io.TextIOWrapper(..., encoding='utf-8', write_through=True)</td><td>La console Windows casse sur les accents ; <code>write_through</code> force le vidage réel du tampon pour suivre un run en arrière-plan (<code>line_buffering</code> seul retient jusqu'à 8 Ko).</td></tr>
-        <tr><td><b>Millésime unique</b></td><td class="mono">DATE_TAG = '2026-06-10'</td><td>Toutes les entrées et sorties portent la même date : un run complet est identifiable et les versions ne se mélangent pas.</td></tr>
+        <tr><td><b>Millésime unique</b></td><td class="mono">DATE_TAG = '2026-08-24'</td><td>Toutes les entrées et sorties portent la même date : un run complet est identifiable et les versions ne se mélangent pas.</td></tr>
         <tr><td><b>Entrées localisées par glob</b></td><td class="mono">_find(name, fallback) → glob.glob('Projet IRVE/**/'+name, recursive=True)</td><td>Les GeoPackage sont réorganisés à la main dans des sous-dossiers ; on retient la copie la plus récente par <code>getmtime</code>, avec repli sur le chemin d'origine. Les sorties, elles, restent dans le dossier du script.</td></tr>
         <tr><td><b>Métriques en JSON</b></td><td class="mono">PHASE*_metrics.json</td><td>Source unique de vérité : tout chiffre cité en aval est repris de ce fichier, ce qui rend impossible la divergence entre un chiffre du texte et un chiffre de la carte.</td></tr>
         <tr><td><b>Backend graphique headless</b></td><td class="mono">matplotlib.use('Agg')</td><td>Rendu de figures sans interface, indispensable en exécution non interactive.</td></tr>
