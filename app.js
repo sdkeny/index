@@ -1481,11 +1481,26 @@ function anaFmtVal(ind, val) {
   }
   return Number(val).toFixed(ind.dec) + (ind.unit || '');
 }
-function anaStyleFn(ind) {
+/* Epaisseur du filet communal selon le zoom : a l'echelle regionale les
+   1 285 communes forment une trame trop dense, le trait doit s'effacer ;
+   en zoomant les polygones grandissent et le filet peut s'affirmer.
+   Les limites departementales, elles, gardent une epaisseur fixe. */
+function anaStroke(z) {
+  if (z <= 9)  return { weight: 0.25, opacity: 0.45 };
+  if (z <= 10) return { weight: 0.45, opacity: 0.55 };
+  if (z <= 11) return { weight: 0.70, opacity: 0.65 };
+  if (z <= 12) return { weight: 1.00, opacity: 0.75 };
+  return { weight: 1.30, opacity: 0.80 };
+}
+function anaZoomOf(view) {
+  return (view && view.map) ? view.map.getZoom() : 9;
+}
+function anaStyleFn(ind, view) {
   return function (feat) {
     var d = ANALYSES_DATA[feat.properties.code];
     var val = d ? d[ind.key] : undefined;
-    return { fillColor: anaColor(ind, val), weight: 0.35, color: '#33404d', opacity: 0.5, fillOpacity: 0.95 };
+    var s = anaStroke(anaZoomOf(view));
+    return { fillColor: anaColor(ind, val), weight: s.weight, color: '#33404d', opacity: s.opacity, fillOpacity: 0.95 };
   };
 }
 function anaRenderLegend(ind, elId) {
@@ -1530,9 +1545,9 @@ function anaCreateView(mapId, basemap) {
   }
   var view = { map: map, layer: null, cur: null };
   view.layer = L.geoJSON(COMMUNES_GEO, {
-    style: anaStyleFn(ANALYSES_INDICATORS[0]),
+    style: anaStyleFn(ANALYSES_INDICATORS[0], view),
     onEachFeature: function (f, l) {
-      l.on('mouseover', function () { l.setStyle({ weight: 1.8, color: '#111827' }); l.bringToFront(); });
+      l.on('mouseover', function () { l.setStyle({ weight: anaStroke(map.getZoom()).weight + 1.5, color: '#111827', opacity: 1 }); l.bringToFront(); });
       l.on('mouseout', function () { view.layer.resetStyle(l); });
     }
   }).addTo(map);
@@ -1553,6 +1568,13 @@ function anaCreateView(mapId, basemap) {
     }).addTo(map);
   }
 
+  /* le filet suit le zoom : on re-applique le style courant, quel qu'il soit */
+  map.on('zoomend', function () {
+    if (view.layer && typeof view.layer.options.style === 'function') {
+      view.layer.setStyle(view.layer.options.style);
+    }
+  });
+
   return view;
 }
 
@@ -1560,8 +1582,8 @@ function anaCreateView(mapId, basemap) {
 function anaApply(view, ind, legendId, descId) {
   if (!view || !ind) return;
   view.cur = ind;
-  view.layer.options.style = anaStyleFn(ind);
-  view.layer.setStyle(anaStyleFn(ind));
+  view.layer.options.style = anaStyleFn(ind, view);
+  view.layer.setStyle(anaStyleFn(ind, view));
   view.layer.eachLayer(function (l) { anaBindTip(l, ind); });
   anaRenderLegend(ind, legendId);
   var d = document.getElementById(descId);
@@ -1650,7 +1672,8 @@ function anaWColor(s) {
 }
 function anaWStyleFn(feat) {
   var s = anaWScores[feat.properties.code];
-  return { fillColor: anaWColor(s), weight: 0.4, color: '#ffffff', fillOpacity: 0.85 };
+  var k = anaStroke(anaZoomOf(anaWView));
+  return { fillColor: anaWColor(s), weight: k.weight, color: '#33404d', opacity: k.opacity, fillOpacity: 0.95 };
 }
 function anaWCompute() {
   var ws = [], tot = 0;
