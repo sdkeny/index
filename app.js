@@ -1463,10 +1463,10 @@ function anaFindInd(id) {
   return null;
 }
 function anaColor(ind, val) {
-  if (val === undefined || val === null || val === '') return '#f0f0f0';
+  if (val === undefined || val === null || val === '') return '#cfd4d7';
   if (ind.type === 'cat') {
     for (var i = 0; i < ind.cats.length; i++) { if (ind.cats[i][0] == val) return ind.cats[i][2]; }
-    return '#f0f0f0';
+    return '#cfd4d7';
   }
   var b = ind.breaks, c = ind.palette;
   for (var j = 0; j < b.length; j++) { if (val <= b[j]) return c[j]; }
@@ -1485,7 +1485,7 @@ function anaStyleFn(ind) {
   return function (feat) {
     var d = ANALYSES_DATA[feat.properties.code];
     var val = d ? d[ind.key] : undefined;
-    return { fillColor: anaColor(ind, val), weight: 0.4, color: '#ffffff', fillOpacity: 0.85 };
+    return { fillColor: anaColor(ind, val), weight: 0.55, color: '#33404d', opacity: 0.6, fillOpacity: 0.95 };
   };
 }
 function anaRenderLegend(ind, elId) {
@@ -1536,6 +1536,23 @@ function anaCreateView(mapId, basemap) {
       l.on('mouseout', function () { view.layer.resetStyle(l); });
     }
   }).addTo(map);
+
+  /* limites departementales par-dessus : structure la lecture et detache
+     le contour de l'Ile-de-France du fond de plan */
+  if (typeof DEPTS_GEO !== 'undefined') {
+    map.createPane('anaBounds');
+    map.getPane('anaBounds').style.zIndex = 450;
+    map.getPane('anaBounds').style.pointerEvents = 'none';
+    L.geoJSON(DEPTS_GEO, {
+      pane: 'anaBounds', interactive: false,
+      style: { color: '#ffffff', weight: 3.2, opacity: 0.75, fill: false }
+    }).addTo(map);
+    L.geoJSON(DEPTS_GEO, {
+      pane: 'anaBounds', interactive: false,
+      style: { color: '#1b2430', weight: 1.5, opacity: 0.9, fill: false }
+    }).addTo(map);
+  }
+
   return view;
 }
 
@@ -1627,7 +1644,7 @@ var ANA_WPALETTE = ['#fee5d9', '#fcae91', '#fb6a4a', '#de2d26', '#a50f15'];
 var anaWView = null, anaWScores = {}, anaWBreaks = [];
 
 function anaWColor(s) {
-  if (s === undefined) return '#f0f0f0';
+  if (s === undefined) return '#cfd4d7';
   for (var i = 0; i < anaWBreaks.length; i++) { if (s <= anaWBreaks[i]) return ANA_WPALETTE[i]; }
   return ANA_WPALETTE[ANA_WPALETTE.length - 1];
 }
