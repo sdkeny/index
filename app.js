@@ -1485,7 +1485,7 @@ function anaStyleFn(ind) {
   return function (feat) {
     var d = ANALYSES_DATA[feat.properties.code];
     var val = d ? d[ind.key] : undefined;
-    return { fillColor: anaColor(ind, val), weight: 0.55, color: '#33404d', opacity: 0.6, fillOpacity: 0.95 };
+    return { fillColor: anaColor(ind, val), weight: 0.35, color: '#33404d', opacity: 0.5, fillOpacity: 0.95 };
   };
 }
 function anaRenderLegend(ind, elId) {
