@@ -92,9 +92,9 @@ function initMap() {
     zoomControl : true,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributeurs &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
+  /* Fond Esri (sans clé) : les tuiles CARTO exigent désormais une clé API (nov. 2026) */
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Fond &copy; <a href="https://www.esri.com/">Esri</a> · sources : Esri, HERE, Garmin, &copy; contributeurs OpenStreetMap',
     maxZoom: 19,
   }).addTo(map);
 
@@ -1540,8 +1540,8 @@ function anaCreateView(mapId, basemap) {
     L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
       { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '© Google Maps' }).addTo(map);
   } else {
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      { maxZoom: 18, attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 16, attribution: 'Fond © Esri · sources : Esri, HERE, Garmin, © OpenStreetMap' }).addTo(map);
   }
   var view = { map: map, layer: null, cur: null };
   view.layer = L.geoJSON(COMMUNES_GEO, {
